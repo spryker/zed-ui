@@ -16,10 +16,9 @@ describe('ZedHeaderComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ZedHeaderComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it('should create component', () => {
     expect(component).toBeTruthy();
   });
 });
