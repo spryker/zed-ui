@@ -113,4 +113,4 @@ class TableDefaultConfigData implements Partial<TableConfig> {
         },
     ],
 })
-export class TableRootModule {}
+export class DefaultTableConfigModule {}
