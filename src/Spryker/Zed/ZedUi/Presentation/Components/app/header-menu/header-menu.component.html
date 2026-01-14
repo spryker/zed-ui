@@ -12,9 +12,11 @@
 
     <ng-content></ng-content>
 
-    <a class="mp-header-menu__link" *ngFor="let item of navigationConfig" [href]="item.url">
-        <spy-user-menu-link [type]="item.type ?? linkType">
-            {{ item.title }}
-        </spy-user-menu-link>
-    </a>
+    @for (item of navigationConfig; track item) {
+        <a class="mp-header-menu__link" [href]="item.url">
+            <spy-user-menu-link [type]="item.type ?? linkType">
+                {{ item.title }}
+            </spy-user-menu-link>
+        </a>
+    }
 </spy-user-menu>

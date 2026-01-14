@@ -1,60 +1,70 @@
-import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
-import { createComponentWrapper, getTestingForComponent } from '@mp/zed-ui/testing';
+import { Component, Input, NO_ERRORS_SCHEMA } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { HeaderMenuComponent } from './header-menu.component';
 
-describe('HeaderMenuComponent', () => {
-    const { testModule, createComponent } = getTestingForComponent(HeaderMenuComponent, {
-        ngModule: { schemas: [NO_ERRORS_SCHEMA] },
-        projectContent: `
+@Component({
+    standalone: false,
+    template: `
+        <mp-header-menu [navigationConfig]="navigationConfig">
             <span info-primary></span>
             <span info-secondary></span>
             <div class="default-slot"></div>
-        `,
-    });
+        </mp-header-menu>
+    `,
+})
+class TestHostComponent {
+    @Input() navigationConfig: any;
+}
+
+describe('HeaderMenuComponent', () => {
+    let hostFixture: ComponentFixture<TestHostComponent>;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            imports: [testModule],
+            declarations: [HeaderMenuComponent, TestHostComponent],
+            schemas: [NO_ERRORS_SCHEMA],
         });
+
+        hostFixture = TestBed.createComponent(TestHostComponent);
+        hostFixture.detectChanges();
     });
 
-    it('should render <spy-user-menu> component', async () => {
-        const host = await createComponentWrapper(createComponent);
-        const userMenuComponent = host.queryCss('spy-user-menu');
+    it('should render <spy-user-menu> component', () => {
+        const userMenuComponent = hostFixture.debugElement.query(By.css('spy-user-menu'));
 
         expect(userMenuComponent).toBeTruthy();
     });
 
-    it('should render <spy-user-menu-item> component', async () => {
-        const host = await createComponentWrapper(createComponent);
-        const userMenuItemComponent = host.queryCss('spy-user-menu-item');
+    it('should render <spy-user-menu-item> component', () => {
+        const userMenuItemComponent = hostFixture.debugElement.query(By.css('spy-user-menu-item'));
 
         expect(userMenuItemComponent).toBeTruthy();
     });
 
-    it('should render `info-primary` slot to the `.mp-header-menu__user-info-primary` element', async () => {
-        const host = await createComponentWrapper(createComponent);
-        const infoPrimarySlot = host.queryCss('.mp-header-menu__user-info-primary [info-primary]');
+    it('should render `info-primary` slot to the `.mp-header-menu__user-info-primary` element', () => {
+        const infoPrimarySlot = hostFixture.debugElement.query(
+            By.css('.mp-header-menu__user-info-primary [info-primary]'),
+        );
 
         expect(infoPrimarySlot).toBeTruthy();
     });
 
-    it('should render `info-secondary` slot to the `.mp-header-menu__user-info-secondary` element', async () => {
-        const host = await createComponentWrapper(createComponent);
-        const infoSecondarySlot = host.queryCss('.mp-header-menu__user-info-secondary [info-secondary]');
+    it('should render `info-secondary` slot to the `.mp-header-menu__user-info-secondary` element', () => {
+        const infoSecondarySlot = hostFixture.debugElement.query(
+            By.css('.mp-header-menu__user-info-secondary [info-secondary]'),
+        );
 
         expect(infoSecondarySlot).toBeTruthy();
     });
 
-    it('should render default slot to the <spy-user-menu> component', async () => {
-        const host = await createComponentWrapper(createComponent);
-        const defaultSlot = host.queryCss('spy-user-menu .default-slot');
+    it('should render default slot to the <spy-user-menu> component', () => {
+        const defaultSlot = hostFixture.debugElement.query(By.css('spy-user-menu .default-slot'));
 
         expect(defaultSlot).toBeTruthy();
     });
 
-    it('should render `@Input(navigationConfig)` data to the `.mp-header-menu__link` element', async () => {
+    it('should render `@Input(navigationConfig)` data to the `.mp-header-menu__link` element', () => {
         const mockConfig = [
             {
                 url: 'mockUrl',
@@ -62,10 +72,14 @@ describe('HeaderMenuComponent', () => {
                 title: 'mockTitle',
             },
         ];
-        const host = await createComponentWrapper(createComponent, { navigationConfig: mockConfig });
+        const localHostFixture = TestBed.createComponent(TestHostComponent);
+        localHostFixture.componentRef.setInput('navigationConfig', mockConfig);
+        localHostFixture.detectChanges();
 
-        const linkElem = host.queryCss('.mp-header-menu__link');
-        const userMenuLinkComponent = host.queryCss('.mp-header-menu__link spy-user-menu-link');
+        const linkElem = localHostFixture.debugElement.query(By.css('.mp-header-menu__link'));
+        const userMenuLinkComponent = localHostFixture.debugElement.query(
+            By.css('.mp-header-menu__link spy-user-menu-link'),
+        );
 
         expect(linkElem).toBeTruthy();
         expect(linkElem.properties.href).toBe(mockConfig[0].url);

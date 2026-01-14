@@ -1,23 +1,33 @@
-import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
-import { createComponentWrapper, getTestingForComponent } from '@mp/zed-ui/testing';
+import { Component, NO_ERRORS_SCHEMA } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { HeaderComponent } from './header.component';
 
+@Component({
+    standalone: false,
+    template: `
+        <web-mp-header>
+            <span menu></span>
+        </web-mp-header>
+    `,
+})
+class TestHostComponent {}
+
 describe('HeaderComponent', () => {
-    const { testModule, createComponent } = getTestingForComponent(HeaderComponent, {
-        ngModule: { schemas: [NO_ERRORS_SCHEMA] },
-        projectContent: `<span menu></span>`,
-    });
+    let fixture: ComponentFixture<TestHostComponent>;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            imports: [testModule],
+            declarations: [HeaderComponent, TestHostComponent],
+            schemas: [NO_ERRORS_SCHEMA],
         });
+
+        fixture = TestBed.createComponent(TestHostComponent);
     });
 
-    it('should render `menu` slot to the host element', async () => {
-        const host = await createComponentWrapper(createComponent);
-        const menuSlot = host.queryCss('[menu]');
+    it('should render `menu` slot to the host element', () => {
+        fixture.detectChanges();
+        const menuSlot = fixture.debugElement.query(By.css('[menu]'));
 
         expect(menuSlot).toBeTruthy();
     });

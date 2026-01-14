@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@a
 import { SpinnerSize } from '@spryker/spinner';
 
 @Component({
+    standalone: false,
     selector: 'mp-url-html-renderer',
     templateUrl: './url-html-renderer.component.html',
     styleUrls: ['./url-html-renderer.component.less'],

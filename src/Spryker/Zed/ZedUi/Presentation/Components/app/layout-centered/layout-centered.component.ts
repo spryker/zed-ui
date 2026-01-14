@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, ViewEncapsulation } from '@angular/core';
 
 @Component({
+    standalone: false,
     selector: 'mp-layout-centered',
     templateUrl: './layout-centered.component.html',
     styleUrls: ['./layout-centered.component.less'],

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 import { UserMenuLinkType } from '@spryker/user-menu';
-import { ToJson } from '@spryker/utils';
+import { jsonAttribute } from '@spryker/utils';
 
 export interface NavigationConfig {
     url: string;
@@ -9,6 +9,7 @@ export interface NavigationConfig {
 }
 
 @Component({
+    standalone: false,
     selector: 'mp-header-menu',
     templateUrl: './header-menu.component.html',
     styleUrls: ['./header-menu.component.less'],
@@ -17,7 +18,7 @@ export interface NavigationConfig {
     host: { class: 'mp-header-menu' },
 })
 export class HeaderMenuComponent {
-    @Input() @ToJson() navigationConfig?: NavigationConfig[];
+    @Input({ transform: jsonAttribute }) navigationConfig?: NavigationConfig[];
 
     linkType: UserMenuLinkType = UserMenuLinkType.Default;
 }

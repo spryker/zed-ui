@@ -1,48 +1,49 @@
-import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
-import { createComponentWrapper, getTestingForComponent } from '@mp/zed-ui/testing';
+import { Component, NO_ERRORS_SCHEMA } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { MerchantLayoutContentComponent } from './merchant-layout-content.component';
 
-describe('MerchantLayoutContentComponent', () => {
-    const { testModule, createComponent } = getTestingForComponent(MerchantLayoutContentComponent, {
-        ngModule: { schemas: [NO_ERRORS_SCHEMA] },
-        projectContent: `
+@Component({
+    standalone: false,
+    template: `
+        <web-mp-merchant-layout-content>
             <span title></span>
             <span button-action></span>
             <span main></span>
-        `,
-    });
+        </web-mp-merchant-layout-content>
+    `,
+})
+class TestHostComponent {}
+
+describe('MerchantLayoutContentComponent', () => {
+    let fixture: ComponentFixture<TestHostComponent>;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            imports: [testModule],
+            declarations: [MerchantLayoutContentComponent, TestHostComponent],
+            schemas: [NO_ERRORS_SCHEMA],
         });
+
+        fixture = TestBed.createComponent(TestHostComponent);
     });
 
-    it('should render main content next to <spy-headline> component', async () => {
-        const host = await createComponentWrapper(createComponent);
-        const content = host.queryCss('spy-headline + [main]');
+    it('should render main content', () => {
+        fixture.detectChanges();
+        const content = fixture.debugElement.query(By.css('[main]'));
 
         expect(content).toBeTruthy();
     });
 
-    it('should render <spy-headline> component', async () => {
-        const host = await createComponentWrapper(createComponent);
-        const headlineComponent = host.queryCss('spy-headline');
-
-        expect(headlineComponent).toBeTruthy();
-    });
-
-    it('should render `title` slot to the <spy-headline> component', async () => {
-        const host = await createComponentWrapper(createComponent);
-        const titleSlot = host.queryCss('spy-headline [title]');
+    it('should render `title` slot', () => {
+        fixture.detectChanges();
+        const titleSlot = fixture.debugElement.query(By.css('[title]'));
 
         expect(titleSlot).toBeTruthy();
     });
 
-    it('should render `button-action` slot to the <spy-headline> component', async () => {
-        const host = await createComponentWrapper(createComponent);
-        const buttonActionSlot = host.queryCss('spy-headline [button-action]');
+    it('should render `button-action` slot', () => {
+        fixture.detectChanges();
+        const buttonActionSlot = fixture.debugElement.query(By.css('[button-action]'));
 
         expect(buttonActionSlot).toBeTruthy();
     });

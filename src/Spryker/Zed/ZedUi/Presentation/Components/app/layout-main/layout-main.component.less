@@ -46,7 +46,7 @@
             overflow: hidden;
             width: 100%;
 
-            .@{layout-prefix-cls}-sider-collapsed & {
+            .ant-layout-sider-collapsed & {
                 padding-left: @layout-logo-collapsed-padding-x;
                 padding-right: @layout-logo-collapsed-padding-x;
                 display: flex;
@@ -57,28 +57,28 @@
                 width: @layout-logo-width;
                 height: @layout-logo-height;
 
-                .@{layout-prefix-cls}-sider-collapsed & {
+                .ant-layout-sider-collapsed & {
                     width: @layout-logo-collapsed-width;
                 }
             }
 
-            .@{logo-prefix-cls} {
+            .spy-logo {
                 background-position-x: left;
                 background-size: cover;
             }
         }
     }
 
-    .@{layout-sidebar-prefix-cls}__content {
+    .spy-sidebar__content {
         height: 100%;
     }
 
-    .@{navigation-prefix-cls} {
+    .spy-navigation {
         overflow-y: auto;
     }
 
-    .@{layout-prefix-cls}-sider-collapsed {
-        .@{navigation-prefix-cls}__title-text {
+    .ant-layout-sider-collapsed {
+        .spy-navigation__title-text {
             text-align: center;
         }
     }

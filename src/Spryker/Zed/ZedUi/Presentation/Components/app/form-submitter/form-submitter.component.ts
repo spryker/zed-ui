@@ -16,10 +16,11 @@ import {
 } from '@angular/core';
 import { AjaxActionService } from '@spryker/ajax-action';
 import { ConfirmModalData, ModalService } from '@spryker/modal';
-import { ToJson } from '@spryker/utils';
+import { jsonAttribute } from '@spryker/utils';
 import { Subject, catchError, defer, of, shareReplay, switchMap, takeUntil, tap } from 'rxjs';
 
 @Component({
+    standalone: false,
     selector: 'mp-form-submitter',
     templateUrl: './form-submitter.component.html',
     styleUrls: ['./form-submitter.component.less'],
@@ -38,7 +39,7 @@ export class FormSubmitterComponent implements OnInit, OnDestroy, AfterContentIn
 
     @Input() action: string;
     @Input() method = 'POST';
-    @Input() @ToJson() confirmation?: ConfirmModalData;
+    @Input({ transform: jsonAttribute }) confirmation?: ConfirmModalData;
     @Input() buttonMode = false;
 
     @ViewChild('form') form: ElementRef<HTMLFormElement>;

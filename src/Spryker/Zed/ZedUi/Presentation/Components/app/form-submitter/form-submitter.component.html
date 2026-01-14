@@ -4,8 +4,10 @@
     <ng-content select="[form]"></ng-content>
 </form>
 
-<spy-button *ngIf="buttonMode" class="mp-form-submitter__button" (click)="onButtonClick($event)" type="submit">
-    <ng-content select="[button-content]"></ng-content>
-</spy-button>
+@if (buttonMode) {
+    <spy-button class="mp-form-submitter__button" (click)="onButtonClick($event)" type="submit">
+        <ng-content select="[button-content]"></ng-content>
+    </spy-button>
+}
 
 <spy-spinner class="mp-form-submitter__spinner" [isSpinning]="isLoading"></spy-spinner>

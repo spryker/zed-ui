@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, ViewEncapsulation } from '@angular/core';
 
 @Component({
+    standalone: false,
     selector: 'mp-layout-footer',
     templateUrl: './layout-footer.component.html',
     styleUrls: ['./layout-footer.component.less'],

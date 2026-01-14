@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 
 @Component({
+    standalone: false,
     selector: 'mp-layout-main',
     templateUrl: './layout-main.component.html',
     styleUrls: ['./layout-main.component.less'],

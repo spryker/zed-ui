@@ -1,8 +1,16 @@
-import { ChangeDetectionStrategy, Component, Input, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+    booleanAttribute,
+    ChangeDetectionStrategy,
+    Component,
+    Input,
+    ViewChild,
+    ViewEncapsulation,
+} from '@angular/core';
 import { UnsavedChangesFormMonitorDirective } from '@spryker/unsaved-changes.monitor.form';
-import { ToBoolean, ToJson } from '@spryker/utils';
+import { jsonAttribute } from '@spryker/utils';
 
 @Component({
+    standalone: false,
     selector: 'mp-form',
     templateUrl: './form.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -15,8 +23,8 @@ export class FormComponent {
     @Input() action?: string;
     @Input() method?: string;
     @Input() name?: string;
-    @Input() @ToJson() attrs: Record<string, string> = {};
-    @Input() @ToBoolean() withMonitor = false;
+    @Input({ transform: jsonAttribute }) attrs: Record<string, string> = {};
+    @Input({ transform: booleanAttribute }) withMonitor = false;
 
     submitHandler() {
         this.unsavedChangesFormMonitorDirective?.reset();
