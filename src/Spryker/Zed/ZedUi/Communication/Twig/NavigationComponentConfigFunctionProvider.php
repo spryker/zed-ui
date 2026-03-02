@@ -33,10 +33,6 @@ class NavigationComponentConfigFunctionProvider extends TwigFunctionProvider
      */
     protected ZedUiToTranslatorFacadeInterface $translatorFacade;
 
-    /**
-     * @param \Spryker\Zed\ZedUi\Dependency\Service\ZedUiToUtilEncodingServiceInterface $utilEncodingService
-     * @param \Spryker\Zed\ZedUi\Dependency\Facade\ZedUiToTranslatorFacadeInterface $translatorFacade
-     */
     public function __construct(
         ZedUiToUtilEncodingServiceInterface $utilEncodingService,
         ZedUiToTranslatorFacadeInterface $translatorFacade
@@ -45,17 +41,11 @@ class NavigationComponentConfigFunctionProvider extends TwigFunctionProvider
         $this->translatorFacade = $translatorFacade;
     }
 
-    /**
-     * @return string
-     */
     public function getFunctionName(): string
     {
         return static::NAVIGATION_COMPONENT_CONFIG_FUNCTION_NAME;
     }
 
-    /**
-     * @return callable
-     */
     public function getFunction(): callable
     {
         return function (array $navigationItems = []): ?string {

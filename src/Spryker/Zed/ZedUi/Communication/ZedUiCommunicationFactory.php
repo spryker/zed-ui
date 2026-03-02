@@ -19,9 +19,6 @@ use Twig\TwigFunction;
 
 class ZedUiCommunicationFactory extends AbstractCommunicationFactory
 {
-    /**
-     * @return \Spryker\Shared\Twig\TwigFunctionProvider
-     */
     public function createNavigationComponentConfigFunctionProvider(): TwigFunctionProvider
     {
         return new NavigationComponentConfigFunctionProvider(
@@ -30,9 +27,6 @@ class ZedUiCommunicationFactory extends AbstractCommunicationFactory
         );
     }
 
-    /**
-     * @return \Twig\TwigFunction
-     */
     public function createNavigationComponentConfigFunction(): TwigFunction
     {
         $functionProvider = $this->createNavigationComponentConfigFunctionProvider();
@@ -44,25 +38,16 @@ class ZedUiCommunicationFactory extends AbstractCommunicationFactory
         );
     }
 
-    /**
-     * @return \Spryker\Shared\ZedUi\ZedUiFactoryInterface
-     */
     public function createZedUiFactory(): ZedUiFactoryInterface
     {
         return new ZedUiFactory();
     }
 
-    /**
-     * @return \Spryker\Zed\ZedUi\Dependency\Service\ZedUiToUtilEncodingServiceInterface
-     */
     public function getUtilEncoding(): ZedUiToUtilEncodingServiceInterface
     {
         return $this->getProvidedDependency(ZedUiDependencyProvider::SERVICE_UTIL_ENCODING);
     }
 
-    /**
-     * @return \Spryker\Zed\ZedUi\Dependency\Facade\ZedUiToTranslatorFacadeInterface
-     */
     public function getTranslatorFacade(): ZedUiToTranslatorFacadeInterface
     {
         return $this->getProvidedDependency(ZedUiDependencyProvider::FACADE_TRANSLATOR);

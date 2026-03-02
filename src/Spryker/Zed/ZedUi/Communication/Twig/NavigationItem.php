@@ -36,73 +36,41 @@ class NavigationItem implements JsonSerializable
      */
     protected ?array $subItems;
 
-    /**
-     * @return string|null
-     */
     public function getTitle(): ?string
     {
         return $this->title;
     }
 
-    /**
-     * @param string|null $title
-     *
-     * @return void
-     */
     public function setTitle(?string $title): void
     {
         $this->title = $title;
     }
 
-    /**
-     * @return string|null
-     */
     public function getUrl(): ?string
     {
         return $this->url;
     }
 
-    /**
-     * @param string|null $url
-     *
-     * @return void
-     */
     public function setUrl(?string $url): void
     {
         $this->url = $url;
     }
 
-    /**
-     * @return string|null
-     */
     public function getIcon(): ?string
     {
         return $this->icon;
     }
 
-    /**
-     * @param string|null $icon
-     *
-     * @return void
-     */
     public function setIcon(?string $icon): void
     {
         $this->icon = $icon;
     }
 
-    /**
-     * @return bool|null
-     */
     public function getisActive(): ?bool
     {
         return $this->isActive;
     }
 
-    /**
-     * @param bool|null $isActive
-     *
-     * @return void
-     */
     public function setIsActive(?bool $isActive): void
     {
         $this->isActive = $isActive;

@@ -38,11 +38,6 @@ class ZedUiApplicationPlugin extends AbstractPlugin implements ApplicationPlugin
         return $container;
     }
 
-    /**
-     * @param \Spryker\Service\Container\ContainerInterface $container
-     *
-     * @return \Spryker\Service\Container\ContainerInterface
-     */
     protected function addZedUiFactory(ContainerInterface $container): ContainerInterface
     {
         $container->set(static::SERVICE_ZED_UI_FACTORY, function () {

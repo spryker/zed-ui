@@ -41,11 +41,6 @@ class BooleanToStringTwigPlugin extends AbstractPlugin implements TwigPluginInte
         return $twig;
     }
 
-    /**
-     * @param \Twig\Environment $twig
-     *
-     * @return \Twig\Environment
-     */
     protected function addTwigFilters(Environment $twig): Environment
     {
         $twig->addFilter($this->getBoolToStrFilter());
@@ -53,9 +48,6 @@ class BooleanToStringTwigPlugin extends AbstractPlugin implements TwigPluginInte
         return $twig;
     }
 
-    /**
-     * @return \Twig\TwigFilter
-     */
     protected function getBoolToStrFilter(): TwigFilter
     {
         return new TwigFilter(static::FILTER_NAME_BOOL_TO_STR, function ($value) {

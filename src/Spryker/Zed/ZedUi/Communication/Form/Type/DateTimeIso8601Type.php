@@ -50,9 +50,6 @@ class DateTimeIso8601Type extends DateTimeType
         $builder->addModelTransformer($this->createDateTimeModelTransformer());
     }
 
-    /**
-     * @return \Symfony\Component\Form\CallbackTransformer
-     */
     protected function createDateTimeModelTransformer(): CallbackTransformer
     {
         return new CallbackTransformer(
@@ -61,9 +58,6 @@ class DateTimeIso8601Type extends DateTimeType
         );
     }
 
-    /**
-     * @return \Symfony\Component\Form\CallbackTransformer
-     */
     protected function createDateTimeViewTransformer(): CallbackTransformer
     {
         return new CallbackTransformer(
@@ -72,9 +66,6 @@ class DateTimeIso8601Type extends DateTimeType
         );
     }
 
-    /**
-     * @return callable
-     */
     protected function getTransformStringToDateTimeCallback(): callable
     {
         return function ($value) {
@@ -86,11 +77,6 @@ class DateTimeIso8601Type extends DateTimeType
         };
     }
 
-    /**
-     * @param string $format
-     *
-     * @return callable
-     */
     protected function getTransformDateTimeToStringCallback(string $format = self::DATE_TIME_FORMAT): callable
     {
         return function ($value) use ($format) {
