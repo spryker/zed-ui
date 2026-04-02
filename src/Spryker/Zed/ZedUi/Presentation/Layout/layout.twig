@@ -49,6 +49,22 @@
             {% block headCss %}
                 <link rel="stylesheet" href="{{ assetsPath(importConfig.assetsPath ~ 'styles.css') }}">
             {% endblock %}
+
+            {% block themeStyles %}
+                <style>
+                    :root {
+                        {% for key, value in configurationValues('theme:merchant_portal:colors') %}
+                            --{{ key | replace({'_': '-'}) }}: {{ value | raw }};
+                        {% endfor %}
+
+                        {% set logo = configurationValue('theme:logos:logos:merchant_portal_logo') %}
+
+                        {% if logo is not empty %}
+                            --spy-logo-full: url({{ logo | raw }});
+                        {% endif %}
+                    }
+                </style>
+            {% endblock %}
         </head>
         <body>
             <web-mp-root cloak>

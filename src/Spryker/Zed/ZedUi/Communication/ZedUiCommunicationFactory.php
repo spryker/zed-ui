@@ -17,6 +17,9 @@ use Spryker\Zed\ZedUi\Dependency\Service\ZedUiToUtilEncodingServiceInterface;
 use Spryker\Zed\ZedUi\ZedUiDependencyProvider;
 use Twig\TwigFunction;
 
+/**
+ * @method \Spryker\Zed\ZedUi\ZedUiConfig getConfig()
+ */
 class ZedUiCommunicationFactory extends AbstractCommunicationFactory
 {
     public function createNavigationComponentConfigFunctionProvider(): TwigFunctionProvider
