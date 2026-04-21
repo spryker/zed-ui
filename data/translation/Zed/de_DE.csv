@@ -1,4 +1,11 @@
 Success!,"Änderungen gespeichert!"
-"Merchant Portal","Merchant Portal"
 "End User Assistance","Benutzer-Support beenden"
 "Log out Agent","Abmelden Assistent"
+Theme,Thema
+Logos,Logos
+"Merchant Portal",Händlerportal
+"Merchant Portal Logo","Händlerportal Logo"
+"Logo image displayed in the Merchant Portal header","Logo-Bild im Händlerportal-Header"
+"Merchant Portal Colors",Händlerportal-Farben
+"Merchant Portal Theme Color",Händlerportal-Themenfarbe
+"Primary theme color for the Merchant Portal interface","Primäre Themenfarbe für die Händlerportal-Oberfläche"
