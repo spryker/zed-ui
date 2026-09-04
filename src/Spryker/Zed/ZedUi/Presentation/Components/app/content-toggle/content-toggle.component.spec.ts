@@ -13,8 +13,8 @@ import { ContentToggleComponent } from './content-toggle.component';
     `,
 })
 class TestHostComponent {
-    @Input() name: any;
-    @Input() isContentHidden: any;
+    @Input() name: unknown;
+    @Input() isContentHidden: unknown;
 }
 
 describe('ContentToggleComponent', () => {

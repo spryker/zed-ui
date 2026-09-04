@@ -14,7 +14,7 @@ import { MerchantLayoutMainComponent } from './merchant-layout-main.component';
     `,
 })
 class TestHostComponent {
-    @Input() navigationConfig: any;
+    @Input() navigationConfig: unknown;
 }
 
 describe('MerchantLayoutMainComponent', () => {

@@ -34,3 +34,6 @@ src/*/Zed/*/Persistence/Propel/Map/*
 tests/**/_generated/
 tests/_output/*
 !tests/_output/.gitkeep
+
+!src/Spryker/Zed/ZedUi/FrontendBuilder/__tests__/fixtures/**/vendor/
+src/Spryker/Zed/ZedUi/FrontendBuilder/tsconfig.mp.*

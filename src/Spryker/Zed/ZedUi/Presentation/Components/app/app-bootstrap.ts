@@ -13,7 +13,6 @@ export function appBootstrapProvider(): StaticProvider {
 export function appBootstrapFactory(injector: Injector) {
     return () => {
         return new Promise(() => {
-            // eslint-disable-next-line deprecation/deprecation
             const compiler = injector.get(Compiler);
             const appRef = injector.get(ApplicationRef);
             const initComponentsModule = async (ngModule: ComponentsNgModule) => {

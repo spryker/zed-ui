@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
+        "target": "es2024",
+        "lib": ["es2024", "dom"],
+        "types": ["node"],
+        "noEmit": true,
+        "erasableSyntaxOnly": true,
+        "isolatedModules": true,
+        "allowImportingTsExtensions": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "include": [
+        "settings.mts",
+        "webpack.config.mts",
+        "libs/**/*.mts",
+        "libs/reload/client/**/*.ts",
+        "__tests__/**/*.mts",
+        "__tests__/**/*.test.ts"
+    ]
+}

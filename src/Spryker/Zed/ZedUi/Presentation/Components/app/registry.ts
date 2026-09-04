@@ -1,7 +1,7 @@
 import { Type } from '@angular/core';
 import { CustomElementModule } from '@spryker/web-components';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, deprecation/deprecation
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ComponentsNgModule = Type<CustomElementModule> | Type<any>;
 
 export type NgModuleReceiver = (ngModule: ComponentsNgModule) => void;

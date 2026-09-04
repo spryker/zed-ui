@@ -1,0 +1,41 @@
+{
+    "version": 1,
+    "projects": {
+        "merchant-portal": {
+            "architect": {
+                "build": {
+                    "builder": "@angular-builders/custom-webpack:browser",
+                    "options": {
+                        "customWebpackConfig": {
+                            "path": "./vendor/spryker/zed-ui/src/Spryker/Zed/ZedUi/FrontendBuilder/webpack.config.mts",
+                            "mergeRules": {}
+                        },
+                        "outputPath": "public/Stale/assets/js",
+                        "index": "src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components/index.html",
+                        "assets": [
+                            {
+                                "glob": "*/src/Spryker/Zed/*/Presentation/Components/assets/**/*",
+                                "input": "vendor/spryker",
+                                "output": "/assets/"
+                            },
+                            {
+                                "glob": "*/Presentation/Components/assets/**/*",
+                                "input": "src/Pyz/*/src/Pyz/Zed",
+                                "output": "/assets/"
+                            }
+                        ],
+                        "styles": [
+                            "vendor/spryker/zed-ui/src/Spryker/Zed/ZedUi/Presentation/Components/styles.less",
+                            "src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components/styles.less"
+                        ]
+                    },
+                    "configurations": {
+                        "production": {
+                            "budgets": [{ "type": "bundle", "maximumWarning": "9mb", "maximumError": "9mb" }]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -93,7 +93,7 @@ export class FormSubmitterComponent implements OnInit, OnDestroy, AfterContentIn
         this.buttonContentProvided = !!this.buttonContent;
     }
 
-    @HostListener('click', ['$event'])
+    @HostListener('click')
     onClick() {
         if (this.buttonMode) {
             return;

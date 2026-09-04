@@ -33,5 +33,7 @@ tooling.yml export-ignore
 .gitattributes export-ignore
 .gitignore export-ignore
 architecture-baseline.json export-ignore
+src/Spryker/Zed/ZedUi/FrontendBuilder/__tests__/ export-ignore
+src/Spryker/Zed/ZedUi/FrontendBuilder/builder.jest.config.mjs export-ignore
 
 .github/ export-ignore

@@ -1,20 +1,15 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Type, DebugElement } from '@angular/core';
+import { ComponentFixture, TestBed, TestModuleMetadata } from '@angular/core/testing';
+import { Type } from '@angular/core';
 
 export type ComponentInputs<T> = Partial<T>;
 
 export interface TestingModuleMetadata {
-    ngModule?: {
-        imports?: any[];
-        declarations?: any[];
-        providers?: any[];
-        schemas?: any[];
-    };
+    ngModule?: TestModuleMetadata;
     projectContent?: string;
 }
 
 export interface TestingForComponentResult<T> {
-    testModule: any;
+    testModule: TestModuleMetadata;
     createComponent: (inputs?: ComponentInputs<T>, detectChanges?: boolean) => ComponentFixture<T>;
 }
 

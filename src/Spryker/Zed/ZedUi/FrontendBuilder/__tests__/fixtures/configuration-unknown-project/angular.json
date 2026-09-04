@@ -1,0 +1,7 @@
+{
+    "version": 1,
+    "projects": {
+        "back-office": { "architect": {} },
+        "storefront": { "architect": {} }
+    }
+}

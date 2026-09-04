@@ -1,3 +1,4 @@
+import { OVERLAY_DEFAULT_CONFIG } from '@angular/cdk/overlay';
 import { NgModule } from '@angular/core';
 import { LocaleModule } from '@spryker/locale';
 import { DeLocaleModule } from '@spryker/locale/locales/de';
@@ -31,5 +32,6 @@ import { DefaultUnsavedChangesConfigModule } from './unsaved-changes/default-uns
         DefaultCacheConfigModule,
         PersistenceModule,
     ],
+    providers: [{ provide: OVERLAY_DEFAULT_CONFIG, useValue: { usePopover: false } }],
 })
 export class DefaultMerchantPortalConfigModule {}

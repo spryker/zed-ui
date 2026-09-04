@@ -1,0 +1,9 @@
+{
+    "extends": "../../../../../../../../tsconfig.mp.json",
+    "compilerOptions": {
+        "types": ["jest", "node", "custom-project-types"]
+    },
+    "files": ["../../../../../../../../vendor/spryker/zed-ui/src/Spryker/Zed/ZedUi/FrontendBuilder/test-setup.ts"],
+    "include": ["../../../../../../../../vendor/spryker/*/src/Spryker/Zed/*/Presentation/Components/**/*.spec.ts"],
+    "exclude": ["**/node_modules/**", "../../../../../../../../public", "../../../../../../../../dist", "**/dist/**"]
+}

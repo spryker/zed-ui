@@ -1,0 +1,21 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "target": "ES2015",
+        "noUnusedLocals": true,
+        "paths": {
+            "@mp/gui-table": ["./vendor/spryker/gui-table/mp.public-api.ts"],
+            "@mp/removed-merchant-portal-gui": ["./src/Spryker/RemovedMerchantPortalGui/mp.public-api.ts"],
+            "@mp/polyfills": ["./vendor/spryker/zed-ui/src/Spryker/Zed/ZedUi/Presentation/Components/mp.polyfills.ts"],
+            "@mp/customer-shared": ["./src/Pyz/Shared/mp.shared.ts"]
+        }
+    },
+    "include": [
+        "vendor/spryker/*/src/Spryker/Zed/*/Presentation/Components/entry.ts",
+        "src/Pyz/*/src/Pyz/Zed/*/Presentation/Components/entry.ts",
+        "src/Pyz/Custom/hand-written.ts"
+    ],
+    "angularCompilerOptions": {
+        "strictTemplates": false
+    }
+}

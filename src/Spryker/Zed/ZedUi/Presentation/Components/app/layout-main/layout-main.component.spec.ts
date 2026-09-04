@@ -15,7 +15,7 @@ import { LayoutMainComponent } from './layout-main.component';
     `,
 })
 class TestHostComponent {
-    @Input() navigationConfig: any;
+    @Input() navigationConfig: unknown;
 }
 
 describe('LayoutMainComponent', () => {

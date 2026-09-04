@@ -14,7 +14,7 @@ import { HeaderMenuComponent } from './header-menu.component';
     `,
 })
 class TestHostComponent {
-    @Input() navigationConfig: any;
+    @Input() navigationConfig: unknown;
 }
 
 describe('HeaderMenuComponent', () => {
