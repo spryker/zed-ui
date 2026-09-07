@@ -25,6 +25,7 @@ export const CORE_STYLES_MODULE_RELATIVE_PATH = 'src/Spryker/Zed/ZedUi/Presentat
 export interface MerchantPortalSourceLayout {
     name: string;
     marker: string;
+    ownsCoreModules: boolean;
     coreModulesDirectory: string;
     projectModulesDirectory: string;
     // The Angular application entry files live in the project's own ZedUi module, whose path follows
@@ -51,6 +52,7 @@ export interface MerchantPortalBuilderSettings {
         coreAssetFiles: string;
         coreStaticFiles: string;
         projectSpecFiles: string;
+        coreStyleSheetFiles: string;
         projectStyleSheetFiles: string;
     };
     urls: {
@@ -61,6 +63,7 @@ export interface MerchantPortalBuilderSettings {
 const monorepoSourceLayout: MerchantPortalSourceLayout = {
     name: 'monorepo (modules in src/)',
     marker: 'src/Spryker',
+    ownsCoreModules: true,
     coreModulesDirectory: './src/Spryker',
     projectModulesDirectory: './src/Pyz/*/src/Pyz/Zed',
     projectApplicationDirectory: './src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components',
@@ -69,6 +72,7 @@ const monorepoSourceLayout: MerchantPortalSourceLayout = {
 const projectSourceLayout: MerchantPortalSourceLayout = {
     name: 'project (modules in vendor/)',
     marker: 'vendor/spryker',
+    ownsCoreModules: false,
     coreModulesDirectory: './vendor/spryker',
     // A project keeps its Zed modules directly under src/Pyz/Zed, not in the per-module split the
     // monorepo uses.
@@ -146,6 +150,7 @@ export const resolveBuilderSettings = (explicitContext?: string): MerchantPortal
             coreAssetFiles: '*/src/Spryker/Zed/*/Presentation/Components/assets/**/*',
             coreStaticFiles: '*/data/files/**/*',
             projectSpecFiles: '*/Presentation/Components/**/*.spec.ts',
+            coreStyleSheetFiles: '*/src/Spryker/Zed/*/Presentation/Components/**/*.less',
             projectStyleSheetFiles: '*/Presentation/Components/**/*.less',
         },
         urls: {

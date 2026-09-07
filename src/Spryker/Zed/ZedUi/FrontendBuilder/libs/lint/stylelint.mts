@@ -15,7 +15,12 @@ program
 const commandLineOptions = program.opts();
 
 const isFixMode = !!commandLineOptions.fix;
-const defaultFilePaths = [`${settings.paths.projectModulesDirectory}/${settings.globs.projectStyleSheetFiles}`];
+const defaultFilePaths = [
+    `${settings.paths.projectModulesDirectory}/${settings.globs.projectStyleSheetFiles}`,
+    ...(settings.layout.ownsCoreModules
+        ? [`${settings.paths.coreModulesDirectory}/${settings.globs.coreStyleSheetFiles}`]
+        : []),
+];
 const filePaths = commandLineOptions.filePath ? [commandLineOptions.filePath] : defaultFilePaths;
 
 const projectConfigPath = join(settings.context, '.stylelintrc.mp.js');
@@ -38,6 +43,7 @@ if (existsSync(projectConfigPath)) {
 
 stylelint
     .lint({
+        cwd: settings.context,
         configFile,
         files: filePaths,
         formatter: 'string',

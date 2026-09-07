@@ -82,25 +82,17 @@ regeneration.
    the compiler fails with `TS5090: Non-relative paths are not allowed when 'baseUrl' is not set`.
    The three `tsconfig.mp*.json` files are generated — see below — so you do not edit their `paths`
    by hand.
-7. **Register the ng-zorro date adapter in your project's `AppModule`.** ng-zorro 22 no longer ships an
-   implicit date adapter, and `NZ_DATE_ADAPTER` has no default — without this every date picker throws
-   `NullInjectorError` at runtime:
+7. **Remove any `provideNzDateFnsAdapter()` from your project's `AppModule`.** ng-zorro 22 no longer
+   ships an implicit date adapter, so an unconfigured date picker throws `NullInjectorError` at
+   runtime. `DefaultMerchantPortalConfigModule` now registers the adapter for you through
+   `DefaultDateAdapterConfigModule`, and a project that keeps its own provider only shadows it.
 
-    ```ts
-    import { provideNzDateFnsAdapter } from 'ng-zorro-antd/core/time';
-
-    @NgModule({
-        imports: [/* … */],
-        providers: [provideNzDateFnsAdapter()],
-    })
-    export class AppModule extends RootMerchantPortalModule {}
-    ```
-
-    This is project-level on purpose. `provideNzDateFnsAdapter` does not exist in ng-zorro 20, so ZedUi
-    cannot register it for you without breaking projects that are still on Angular 20 — which is also
-    why it is not part of `DefaultMerchantPortalConfigModule`. Note this is a _different_ abstraction
-    from `@spryker/utils.date.adapter.date-fns`, which ZedUi already imports: that one implements
-    Spryker's own `DateAdapter`, not ng-zorro's `NzDateAdapter`.
+    The module resolves `provideNzDateFnsAdapter` off the `ng-zorro-antd/core/time` namespace instead
+    of importing it by name, because ng-zorro 20 — still supported here — does not export it and keeps
+    its implicit adapter. On ng-zorro 20 the module therefore provides nothing, which is what that
+    version needs. Note this is a _different_ abstraction from `@spryker/utils.date.adapter.date-fns`,
+    which ZedUi also imports: that one implements Spryker's own `DateAdapter`, not ng-zorro's
+    `NzDateAdapter`.
 
 8. **Update `spryker/zed-ui` first, or together with** the other Merchant Portal modules. Modules that
    no longer declare npm dependencies require `spryker/zed-ui: ^4.2.0`, because an older ZedUi does
@@ -115,6 +107,16 @@ with `ERESOLVE`. Pin each `@spryker/*` package to its old major explicitly. A bl
 **wrong**: `actions.confirmation`, `datasource.dependable`, `datasource.trigger`,
 `datasource.trigger.change`, `datasource.trigger.input` and `table.column.button-action` are on the
 `^2.x` line. The full per-package pin list is published in the Spryker documentation.
+
+### What the lint and test commands cover
+
+`mp:lint`, `mp:stylelint` and `mp:test` report on the modules the running repository owns. In the
+Spryker monorepo, where the core modules live in `src/Spryker`, that is the core modules together
+with the project ones; in a project, where the core arrives in `vendor/`, it is the project modules
+alone — installed code is not the project's to report on. Nothing has to be passed to select this:
+the source layout the builder already detects decides it.
+
+`mp:stylelint` takes `-f` to fix what is fixable and `-p <path>` to run over a single file.
 
 ### Live reload
 

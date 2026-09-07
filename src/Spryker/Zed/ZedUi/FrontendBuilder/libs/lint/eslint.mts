@@ -16,10 +16,14 @@ const toProjectPattern = (absoluteDirectory: string, glob: string): string =>
     `./${relative(settings.context, absoluteDirectory)}/${glob}`;
 
 const filePatterns = [
-    toProjectPattern(
-        settings.paths.coreModulesDirectory,
-        `*/src/Spryker/Zed/*/Presentation/Components/**/*.${LINTED_FILE_EXTENSIONS}`,
-    ),
+    ...(settings.layout.ownsCoreModules
+        ? [
+              toProjectPattern(
+                  settings.paths.coreModulesDirectory,
+                  `*/src/Spryker/Zed/*/Presentation/Components/**/*.${LINTED_FILE_EXTENSIONS}`,
+              ),
+          ]
+        : []),
     toProjectPattern(
         settings.paths.projectModulesDirectory,
         `*/Presentation/Components/**/*.${LINTED_FILE_EXTENSIONS}`,

@@ -4,6 +4,7 @@ export * from './app/app.component';
 export * from './app/components.module';
 export * from './app/content-toggle/content-toggle.component';
 export * from './app/content-toggle/content-toggle.module';
+export * from './app/date-adapter/default-date-adapter-config.module';
 export * from './app/default-merchant-portal-config.module';
 export * from './app/form-submitter/form-submitter.component';
 export * from './app/form-submitter/form-submitter.module';

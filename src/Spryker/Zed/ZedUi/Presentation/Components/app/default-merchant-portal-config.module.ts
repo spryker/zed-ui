@@ -13,6 +13,7 @@ import { AjaxActionModule } from '@spryker/ajax-action';
 import { DefaultActionsConfigModule } from './actions/default-actions-config.module';
 import { DefaultCacheConfigModule } from './cache/default-cache-config.module';
 import { DefaultDatasourcesConfigModule } from './datasources/default-datasources-config.module';
+import { DefaultDateAdapterConfigModule } from './date-adapter/default-date-adapter-config.module';
 import { DefaultUnsavedChangesConfigModule } from './unsaved-changes/default-unsaved-changes-config.module';
 
 @NgModule({
@@ -28,6 +29,7 @@ import { DefaultUnsavedChangesConfigModule } from './unsaved-changes/default-uns
         DefaultActionsConfigModule,
         ModalModule.forRoot(),
         DateFnsDateAdapterModule,
+        DefaultDateAdapterConfigModule,
         DefaultDatasourcesConfigModule,
         DefaultCacheConfigModule,
         PersistenceModule,

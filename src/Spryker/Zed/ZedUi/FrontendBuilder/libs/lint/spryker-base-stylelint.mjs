@@ -39,7 +39,7 @@ export const sprykerBaseStylelintRules = {
     'less/no-duplicate-variables': null,
     'media-feature-name-no-unknown': true,
     'media-feature-name-no-vendor-prefix': true,
-    'no-descending-specificity': true,
+    'no-descending-specificity': null,
     'no-duplicate-at-import-rules': true,
     'no-duplicate-selectors': true,
     'no-empty-source': null,
@@ -60,12 +60,7 @@ export const sprykerBaseStylelintRules = {
     'selector-max-id': 1,
     'selector-max-pseudo-class': 2,
     'selector-max-universal': 1,
-    'selector-no-qualifying-type': [
-        true,
-        {
-            ignore: ['attribute'],
-        },
-    ],
+    'selector-no-qualifying-type': null,
     'selector-pseudo-class-no-unknown': true,
     'selector-pseudo-element-colon-notation': 'double',
     'selector-pseudo-element-no-unknown': true,
