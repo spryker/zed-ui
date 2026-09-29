@@ -1,6 +1,4 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
-import { type MerchantPortalBuilderSettings } from '../settings.mts';
 import { matchesConfigurationPathTemplate } from './utils.mts';
 
 export interface ReconciledConfiguration<TConfiguration> {
@@ -24,38 +22,28 @@ export const readConfigurationFile = <TConfiguration,>(filePath: string): TConfi
             `Cannot read the Merchant Portal configuration ${filePath}: ${reason}.\n` +
                 `The builder regenerates the layout-dependent sections of this file in place, so it must ` +
                 `contain valid JSON without comments or trailing commas.\n` +
-                `Fix the JSON syntax, or delete the file and run "npm run mp:update:config" to have it ` +
+                `Fix the JSON syntax, or delete the file and run "npm run update:config -w mp-zed-ui" to have it ` +
                 `written from scratch.\n`,
         );
     }
 };
 
-export const writeConfigurationFile = (
-    settings: MerchantPortalBuilderSettings,
-    filePath: string,
-    configuration: unknown,
-): void => {
-    writeFileSync(filePath, `${JSON.stringify(configuration, null, 4)}\n`);
-
-    const formatterResult = spawnSync('npx', ['prettier', '--write', filePath], {
-        stdio: 'inherit',
-        cwd: settings.context,
-    });
-
-    if (formatterResult.error !== undefined || formatterResult.status !== 0) {
-        const reason =
-            formatterResult.error !== undefined
-                ? formatterResult.error.message
-                : `prettier exited with status ${formatterResult.status}.`;
-
-        throw new Error(
-            `Failed to format ${filePath} after regenerating the Merchant Portal configuration.\n` +
-                `Reason: ${reason}\n` +
-                `The configuration itself was written correctly, so the file is usable but may not match ` +
-                `the repository formatting. Run "npx prettier --write ${filePath}", or install ` +
-                `dependencies so "npx prettier" resolves, then re-run "npm run mp:update:config".\n`,
-        );
+const hasSameContent = (existingText: string, configuration: unknown): boolean => {
+    try {
+        return JSON.stringify(JSON.parse(existingText)) === JSON.stringify(configuration);
+    } catch {
+        // An unparsable file is rewritten.
+        return false;
     }
+};
+
+// Rewritten only when the content changes, so the formatting a project gave its copy survives.
+export const writeConfigurationFile = (filePath: string, configuration: unknown): void => {
+    if (existsSync(filePath) && hasSameContent(readFileSync(filePath, 'utf8'), configuration)) {
+        return;
+    }
+
+    writeFileSync(filePath, `${JSON.stringify(configuration, null, 4)}\n`);
 };
 
 export const matchesAnyPathTemplate = (configurationPath: string, pathTemplates: string[]): boolean =>

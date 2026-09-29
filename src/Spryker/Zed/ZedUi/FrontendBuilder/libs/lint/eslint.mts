@@ -2,12 +2,12 @@ import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { resolveBuilderSettings } from '../../settings.mts';
+import { loadProjectBuilderSettings } from '../../settings.mts';
 
 const LINTED_FILE_EXTENSIONS = '{ts,html}';
 const PROJECT_CONFIGURATION_FILE_NAME = 'eslint.config.mp.mjs';
 
-const settings = resolveBuilderSettings();
+const settings = await loadProjectBuilderSettings();
 
 // The directories the Merchant Portal sources live in differ per source layout, so the patterns are
 // built from the resolved paths rather than written out. They stay relative to the project root
@@ -24,9 +24,8 @@ const filePatterns = [
               ),
           ]
         : []),
-    toProjectPattern(
-        settings.paths.projectModulesDirectory,
-        `*/Presentation/Components/**/*.${LINTED_FILE_EXTENSIONS}`,
+    ...settings.paths.projectModulesDirectories.map((projectModulesDirectory) =>
+        toProjectPattern(projectModulesDirectory, `*/Presentation/Components/**/*.${LINTED_FILE_EXTENSIONS}`),
     ),
 ];
 

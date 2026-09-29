@@ -37,3 +37,5 @@ tests/_output/*
 
 !src/Spryker/Zed/ZedUi/FrontendBuilder/__tests__/fixtures/**/vendor/
 src/Spryker/Zed/ZedUi/FrontendBuilder/tsconfig.mp.*
+
+src/Spryker/Zed/ZedUi/FrontendBuilder/tsconfig.defaults.json

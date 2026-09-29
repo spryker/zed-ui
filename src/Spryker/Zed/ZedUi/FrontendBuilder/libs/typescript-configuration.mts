@@ -21,13 +21,42 @@ import {
     type ReconciledConfiguration,
 } from './configuration-file.mts';
 import { joinConfigurationPath, resolveCoreModuleFilePath, toConfigurationPathSegments } from './utils.mts';
+import {
+    PROJECT_CONFIGURATION_FILE_NAME,
+    reconcileSolutionConfiguration,
+    type SolutionReconciliation,
+} from './solution-configuration.mts';
 
 export const BUILD_CONFIGURATION_FILE_NAME = 'tsconfig.mp.json';
 export const SPEC_CONFIGURATION_FILE_NAME = 'tsconfig.mp.spec.json';
 export const LINT_CONFIGURATION_FILE_NAME = 'tsconfig.mp.lint.json';
-// The root configuration every Merchant Portal configuration builds on. It is the project's own
-// entry point, so a project that later folds tsconfig.base.json into it needs no change here.
-const BASE_CONFIGURATION_FILE_NAME = 'tsconfig.json';
+export const DEFAULTS_CONFIGURATION_FILE_NAME = 'tsconfig.defaults.json';
+
+// Formerly the project root tsconfig.json; the root now only carries what a project overrides.
+const SHARED_COMPILER_OPTIONS: Record<string, unknown> = {
+    sourceMap: true,
+    noImplicitAny: false,
+    declaration: false,
+    emitDecoratorMetadata: true,
+    experimentalDecorators: true,
+    noEmitHelpers: true,
+    importHelpers: true,
+    skipLibCheck: true,
+    skipDefaultLibCheck: true,
+    removeComments: true,
+    useDefineForClassFields: false,
+    moduleResolution: 'bundler',
+    target: 'es2020',
+    module: 'esnext',
+    lib: ['dom', 'esnext'],
+    strict: false,
+};
+
+const SHARED_EXCLUDED_PATHS = ['**/node_modules/**', '**/*.spec.ts', '**/*.test.ts', 'public', 'dist', '**/dist/**'];
+
+const MERCHANT_PORTAL_COMPILER_OPTIONS: Record<string, unknown> = {
+    target: 'ES2022',
+};
 
 const PROJECT_APPLICATION_FILE_NAMES = ['main.ts', 'polyfills.ts', 'environments/environment.prod.ts'];
 
@@ -47,18 +76,18 @@ const resolveConfigurationLocation = (context: string, fileName: string): Config
     existsSync(join(context, fileName)) ? 'projectRoot' : 'builder';
 
 // TypeScript resolves `paths` against `baseUrl` when one is in effect, and against the file that
-// declares them otherwise. A project that still sets `baseUrl` in its base configuration therefore
+// declares them otherwise. A project that still sets `baseUrl` in its root configuration therefore
 // needs the aliases written relative to the project root, without the parent ladder.
 const hasBaseUrl = (context: string): boolean => {
     const baseConfiguration = readConfigurationFile<TypeScriptConfiguration>(
-        join(context, BASE_CONFIGURATION_FILE_NAME),
+        join(context, PROJECT_CONFIGURATION_FILE_NAME),
     );
 
     return baseConfiguration?.compilerOptions?.baseUrl !== undefined;
 };
 
 export interface TypeScriptConfiguration {
-    extends?: string;
+    extends?: string | string[];
     compilerOptions?: Record<string, unknown> & { paths?: ModulePathAliases };
     angularCompilerOptions?: Record<string, unknown>;
     files?: string[];
@@ -81,8 +110,8 @@ export type ReconciledTypeScriptConfiguration = ReconciledConfiguration<TypeScri
 const buildLayoutPath = (layout: MerchantPortalSourceLayout, coreGlob: string): string =>
     joinConfigurationPath(layout.coreModulesDirectory, coreGlob);
 
-const buildProjectPath = (layout: MerchantPortalSourceLayout, projectGlob: string): string =>
-    joinConfigurationPath(layout.projectModulesDirectory, projectGlob);
+const buildProjectPaths = (layout: MerchantPortalSourceLayout, projectGlob: string): string[] =>
+    Object.values(layout.projectModulesDirectories).map((directory) => joinConfigurationPath(directory, projectGlob));
 
 // TypeScript resolves a path relative to the file holding it, while the builder computes every path
 // relative to the project root, so a file outside the root prefixes them with a parent ladder.
@@ -116,15 +145,20 @@ const buildSharedExcludes = (parentDirectoryLadder: string): string[] => [
 
 interface ConfigurationReferences {
     parentDirectoryLadder: string;
-    baseConfiguration: string;
     buildConfiguration: string;
 }
 
-const buildDefaultBuildConfiguration = ({ baseConfiguration }: ConfigurationReferences): TypeScriptConfiguration => ({
-    extends: baseConfiguration,
-    compilerOptions: {
-        target: 'ES2022',
-    },
+// The project root comes last, so the options a project sets there override the builder defaults.
+const buildGeneratedExtends = (parentDirectoryLadder: string): string[] => [
+    `./${DEFAULTS_CONFIGURATION_FILE_NAME}`,
+    buildRelativeReference(parentDirectoryLadder, PROJECT_CONFIGURATION_FILE_NAME),
+];
+
+const buildDefaultBuildConfiguration = ({
+    parentDirectoryLadder,
+}: ConfigurationReferences): TypeScriptConfiguration => ({
+    extends: buildGeneratedExtends(parentDirectoryLadder),
+    compilerOptions: {},
     include: [],
     angularCompilerOptions: {
         strictTemplates: false,
@@ -164,12 +198,17 @@ interface ConfigurationPlan {
     recognisedPathTemplates: string[];
 }
 
-// The same entry written for the other source layout has to be recognised too, otherwise switching
-// layouts would leave the previous layout's paths in the file next to the new ones.
-const buildRecognisedPathTemplates = (coreGlobs: string[], projectGlobs: string[]): string[] =>
-    merchantPortalSourceLayouts.flatMap((layout) => [
+// The same entry written for the other source layout, or for a namespace the project registered, has
+// to be recognised too, otherwise switching layouts would leave the previous paths in the file next
+// to the new ones.
+const buildRecognisedPathTemplates = (
+    effectiveLayout: MerchantPortalSourceLayout,
+    coreGlobs: string[],
+    projectGlobs: string[],
+): string[] =>
+    [...merchantPortalSourceLayouts, effectiveLayout].flatMap((layout) => [
         ...coreGlobs.map((coreGlob) => joinConfigurationPath(layout.coreModulesDirectory, coreGlob)),
-        ...projectGlobs.map((projectGlob) => joinConfigurationPath(layout.projectModulesDirectory, projectGlob)),
+        ...projectGlobs.flatMap((projectGlob) => buildProjectPaths(layout, projectGlob)),
     ]);
 
 // The ladder length depends on how deep the builder sits, which differs per layout, so an entry a
@@ -201,10 +240,10 @@ const buildConfigurationPlans = async (settings: MerchantPortalBuilderSettings):
             fileName: BUILD_CONFIGURATION_FILE_NAME,
             buildDefaults: buildDefaultBuildConfiguration,
             recognisedPathTemplates: [
-                ...buildRecognisedPathTemplates([globs.coreEntryPointFile], [globs.projectEntryPointFile]),
+                ...buildRecognisedPathTemplates(layout, [globs.coreEntryPointFile], [globs.projectEntryPointFile]),
                 // The application files of the other layout have to be recognised as well, otherwise
                 // switching layouts would leave them behind next to the current layout's ones.
-                ...merchantPortalSourceLayouts.flatMap(buildProjectApplicationFiles),
+                ...[...merchantPortalSourceLayouts, layout].flatMap(buildProjectApplicationFiles),
             ],
             sections: {
                 paths: sortPathAliases({
@@ -214,7 +253,7 @@ const buildConfigurationPlans = async (settings: MerchantPortalBuilderSettings):
                 include: [
                     ...buildProjectApplicationFiles(layout),
                     buildLayoutPath(layout, globs.coreEntryPointFile),
-                    buildProjectPath(layout, globs.projectEntryPointFile),
+                    ...buildProjectPaths(layout, globs.projectEntryPointFile),
                 ],
             },
         },
@@ -224,13 +263,14 @@ const buildConfigurationPlans = async (settings: MerchantPortalBuilderSettings):
             // The test setup file is matched by its module-relative path so a stale entry pointing at
             // another layout's module directory is replaced rather than kept alongside the new one.
             recognisedPathTemplates: buildRecognisedPathTemplates(
+                layout,
                 [globs.coreSpecFiles, `*/${TEST_SETUP_MODULE_RELATIVE_PATH}`],
                 [globs.projectSpecFiles],
             ),
             sections: {
                 files: [testSetupPath],
                 include: [
-                    buildProjectPath(layout, globs.projectSpecFiles),
+                    ...buildProjectPaths(layout, globs.projectSpecFiles),
                     buildLayoutPath(layout, globs.coreSpecFiles),
                 ],
             },
@@ -238,28 +278,86 @@ const buildConfigurationPlans = async (settings: MerchantPortalBuilderSettings):
         {
             fileName: LINT_CONFIGURATION_FILE_NAME,
             buildDefaults: buildDefaultLintConfiguration,
-            recognisedPathTemplates: buildRecognisedPathTemplates([globs.coreSourceFiles], [globs.projectSourceFiles]),
+            recognisedPathTemplates: buildRecognisedPathTemplates(
+                layout,
+                [globs.coreSourceFiles],
+                [globs.projectSourceFiles],
+            ),
             sections: {
                 include: [
                     buildLayoutPath(layout, globs.coreSourceFiles),
-                    buildProjectPath(layout, globs.projectSourceFiles),
+                    ...buildProjectPaths(layout, globs.projectSourceFiles),
                 ],
             },
         },
     ];
 };
 
-export const reconcileTypeScriptConfigurations = async (
-    settings: MerchantPortalBuilderSettings,
-): Promise<ReconciledTypeScriptConfiguration[]> => {
-    const configurationPlans = await buildConfigurationPlans(settings);
-    const builderDirectory = directoryOfConfigurationPath(
+const resolveBuilderDirectory = async (settings: MerchantPortalBuilderSettings): Promise<string> =>
+    directoryOfConfigurationPath(
         await resolveCoreModuleFilePath(
             settings.paths.coreModulesDirectory,
             settings.layout.coreModulesDirectory,
             TEST_SETUP_MODULE_RELATIVE_PATH,
         ),
     );
+
+/** Rewritten on every run: the builder owns it, and a project overrides it from its root tsconfig.json. */
+export const reconcileDefaultsConfiguration = async (
+    settings: MerchantPortalBuilderSettings,
+): Promise<{ filePath: string; configuration: TypeScriptConfiguration }> => {
+    const directory = await resolveBuilderDirectory(settings);
+    const parentDirectoryLadder = buildParentDirectoryLadder(directory);
+
+    return {
+        filePath: join(settings.context, directory, DEFAULTS_CONFIGURATION_FILE_NAME),
+        configuration: {
+            compilerOptions: {
+                ...SHARED_COMPILER_OPTIONS,
+                // Path-bearing options resolve against this file, so they climb back to the project root.
+                typeRoots: [joinConfigurationPath(parentDirectoryLadder, 'node_modules/@types')],
+                rootDir: parentDirectoryLadder,
+                ...MERCHANT_PORTAL_COMPILER_OPTIONS,
+            },
+            // An exclude glob resolves against this file as well, the `**/` ones included.
+            exclude: SHARED_EXCLUDED_PATHS.map((excludedPath) =>
+                joinConfigurationPath(parentDirectoryLadder, excludedPath),
+            ),
+        },
+    };
+};
+
+export const reconcileProjectSolution = async (
+    settings: MerchantPortalBuilderSettings,
+): Promise<SolutionReconciliation> => {
+    const directory =
+        resolveConfigurationLocation(settings.context, BUILD_CONFIGURATION_FILE_NAME) === 'projectRoot'
+            ? ''
+            : await resolveBuilderDirectory(settings);
+    // The module directory name differs per layout, so the other layout's reference is matched by template.
+    const equivalentReferenceTemplates = [
+        BUILD_CONFIGURATION_FILE_NAME,
+        ...merchantPortalSourceLayouts.map((layout) =>
+            joinConfigurationPath(
+                layout.coreModulesDirectory,
+                '*',
+                BUILDER_MODULE_RELATIVE_DIRECTORY,
+                BUILD_CONFIGURATION_FILE_NAME,
+            ),
+        ),
+    ];
+
+    return reconcileSolutionConfiguration(settings.context, {
+        referencePath: `./${joinConfigurationPath(directory, BUILD_CONFIGURATION_FILE_NAME)}`,
+        isEquivalentReference: (referencePath) => matchesAnyPathTemplate(referencePath, equivalentReferenceTemplates),
+    });
+};
+
+export const reconcileTypeScriptConfigurations = async (
+    settings: MerchantPortalBuilderSettings,
+): Promise<ReconciledTypeScriptConfiguration[]> => {
+    const configurationPlans = await buildConfigurationPlans(settings);
+    const builderDirectory = await resolveBuilderDirectory(settings);
 
     const buildConfigurationDirectory =
         resolveConfigurationLocation(settings.context, BUILD_CONFIGURATION_FILE_NAME) === 'projectRoot'
@@ -272,7 +370,6 @@ export const reconcileTypeScriptConfigurations = async (
         const parentDirectoryLadder = buildParentDirectoryLadder(directory);
         const references: ConfigurationReferences = {
             parentDirectoryLadder,
-            baseConfiguration: buildRelativeReference(parentDirectoryLadder, BASE_CONFIGURATION_FILE_NAME),
             buildConfiguration: buildNeighbourReference(
                 directory,
                 buildConfigurationDirectory,
@@ -291,6 +388,11 @@ export const reconcileTypeScriptConfigurations = async (
         const existingConfiguration = readConfigurationFile<TypeScriptConfiguration>(filePath);
         const wasCreated = existingConfiguration === null;
         const configuration: TypeScriptConfiguration = existingConfiguration ?? buildDefaults(references);
+
+        // Generated like `paths`; a copy the project keeps in its root keeps whatever it extends.
+        if (fileName === BUILD_CONFIGURATION_FILE_NAME && location === 'builder') {
+            configuration.extends = buildGeneratedExtends(parentDirectoryLadder);
+        }
 
         if (sections.paths !== undefined) {
             const compilerOptions = configuration.compilerOptions ?? {};

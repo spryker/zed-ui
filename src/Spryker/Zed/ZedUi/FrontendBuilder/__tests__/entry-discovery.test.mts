@@ -86,20 +86,53 @@ describe('entry point discovery in the vendor/project layout', () => {
     });
 });
 
+describe('entry point discovery in a project namespace other than Pyz', () => {
+    it('ignores a namespace nobody registered', async () => {
+        const context = fixturePath('custom-namespace-layout');
+        const { entryPointsMap } = await discoverIn('custom-namespace-layout');
+
+        expect(Object.keys(entryPointsMap)).toEqual(['spy/acme-dashboard-gui', SINGLE_ENTRY_POINT_NAME]);
+        expect(relative(context, entryPointsMap['spy/acme-dashboard-gui'] as string)).toBe(
+            'src/Pyz/Zed/AcmeDashboardGui/Presentation/Components/entry.ts',
+        );
+    });
+
+    it('lets a module of a namespace registered later override the same-named module of an earlier one', async () => {
+        const context = fixturePath('custom-namespace-layout');
+        const settings = resolveBuilderSettings(context, {
+            paths: { projectModulesDirectories: { acme: './src/Acme/Zed' } },
+        });
+        const { entryPointsMap, entryPointFiles } = await discoverEntryPoints(settings);
+
+        expect(relative(context, entryPointsMap['spy/acme-dashboard-gui'] as string)).toBe(
+            'src/Acme/Zed/AcmeDashboardGui/Presentation/Components/entry.ts',
+        );
+        expect(entryPointFiles.map((file) => relative(context, file))).toEqual([
+            'vendor/spryker/zed-ui/src/Spryker/Zed/ZedUi/Presentation/Components/entry.ts',
+            'src/Pyz/Zed/AcmeDashboardGui/Presentation/Components/entry.ts',
+            'src/Acme/Zed/AcmeDashboardGui/Presentation/Components/entry.ts',
+        ]);
+    });
+});
+
 describe('entry point discovery failure', () => {
     it('reports the scanned directories and the consequence when no entry file matches', async () => {
         const context = fixturePath('new-core-module');
         const settings = resolveBuilderSettings(context);
         const settingsWithWrongTree = {
             ...settings,
-            paths: { ...settings.paths, coreModulesDirectory: `${context}/src/NotSpryker` },
+            paths: {
+                ...settings.paths,
+                coreModulesDirectory: `${context}/src/NotSpryker`,
+                projectModulesDirectories: [`${context}/src/NotPyz/Zed`],
+            },
         };
 
         await expect(discoverEntryPoints(settingsWithWrongTree)).rejects.toThrow(
             /No Merchant Portal entry point was found for .*new-core-module/,
         );
         await expect(discoverEntryPoints(settingsWithWrongTree)).rejects.toThrow(
-            /src\/NotSpryker[\s\S]*would be empty[\s\S]*Run the build from the project root/,
+            /src\/NotSpryker[\s\S]*src\/NotPyz\/Zed[\s\S]*would be empty[\s\S]*Run the build from the project root[\s\S]*merchant-portal\.settings\.mts/,
         );
     });
 });

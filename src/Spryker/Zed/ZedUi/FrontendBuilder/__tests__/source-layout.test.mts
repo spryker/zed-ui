@@ -7,7 +7,7 @@ describe('source layout detection', () => {
         expect(resolveSourceLayout(fixturePath('monorepo-layout'))).toMatchObject({
             marker: 'src/Spryker',
             coreModulesDirectory: './src/Spryker',
-            projectModulesDirectory: './src/Pyz/*/src/Pyz/Zed',
+            projectModulesDirectories: { pyz: './src/Pyz/*/src/Pyz/Zed' },
         });
     });
 
@@ -15,7 +15,7 @@ describe('source layout detection', () => {
         expect(resolveSourceLayout(fixturePath('project-layout'))).toMatchObject({
             marker: 'vendor/spryker',
             coreModulesDirectory: './vendor/spryker',
-            projectModulesDirectory: './src/Pyz/Zed',
+            projectModulesDirectories: { pyz: './src/Pyz/Zed' },
         });
     });
 
@@ -25,5 +25,6 @@ describe('source layout detection', () => {
         expect(() => resolveSourceLayout(context)).toThrow(context);
         expect(() => resolveSourceLayout(context)).toThrow(/neither "src\/Spryker".*nor "vendor\/spryker"/s);
         expect(() => resolveSourceLayout(context)).toThrow(/must run from the project root/);
+        expect(() => resolveSourceLayout(context)).toThrow(/frontend\/merchant-portal\.settings\.mts/);
     });
 });

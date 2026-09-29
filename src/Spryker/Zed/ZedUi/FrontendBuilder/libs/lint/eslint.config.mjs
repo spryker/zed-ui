@@ -3,13 +3,22 @@ import typescriptParser from '@typescript-eslint/parser';
 import angularEslint from 'angular-eslint';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { sprykerBaseGlobals, sprykerBaseRules } from './spryker-base-eslint.mjs';
-import { resolveProjectRoot } from '../../settings.mts';
+import { loadProjectBuilderSettings, resolveProjectRoot } from '../../settings.mts';
 import {
     BUILD_CONFIGURATION_FILE_NAME,
     LINT_CONFIGURATION_FILE_NAME,
     SPEC_CONFIGURATION_FILE_NAME,
 } from '../typescript-configuration.mts';
+import { joinConfigurationPath } from '../utils.mts';
+
+// The module directories differ per source layout, so the patterns are built from the detected one.
+const { layout } = await loadProjectBuilderSettings();
+const buildProjectPatterns = (extension) =>
+    Object.values(layout.projectModulesDirectories).map((directory) =>
+        joinConfigurationPath(directory, `*/Presentation/Components/**/*.${extension}`),
+    );
+const buildCorePattern = (extension) =>
+    joinConfigurationPath(layout.coreModulesDirectory, `*/src/Spryker/Zed/*/Presentation/Components/**/*.${extension}`);
 
 // Mirrors where the reconciliation writes a configuration: the project root when the project keeps
 // a file of that name there, the builder otherwise.
@@ -22,7 +31,7 @@ const configurationPath = (fileName) => {
 
 const merchantPortalProjectConfig = [
     {
-        files: ['src/Pyz/*/src/Pyz/Zed/*/Presentation/Components/**/*.ts'],
+        files: buildProjectPatterns('ts'),
         languageOptions: {
             parser: typescriptParser,
             parserOptions: {
@@ -37,20 +46,158 @@ const merchantPortalProjectConfig = [
         },
         processor: angularEslint.processInlineTemplates,
         rules: {
-            ...sprykerBaseRules,
-            'no-undef': 'off',
-            'no-unused-vars': 'off',
+            'accessor-pairs': 'error',
+            camelcase: [
+                'error',
+                {
+                    properties: 'always',
+                },
+            ],
+            eqeqeq: [
+                'error',
+                'always',
+                {
+                    null: 'ignore',
+                },
+            ],
+            'new-cap': [
+                'error',
+                {
+                    newIsCap: true,
+                    capIsNew: false,
+                },
+            ],
+            'no-array-constructor': 'error',
+            'no-caller': 'error',
+            'no-compare-neg-zero': 'error',
+            'no-cond-assign': ['error', 'always'],
             'no-console': [
                 'warn',
                 {
                     allow: ['warn', 'error'],
                 },
             ],
+            'no-constant-condition': [
+                'error',
+                {
+                    checkLoops: false,
+                },
+            ],
+            'no-control-regex': 'error',
+            'no-debugger': 'error',
+            'no-delete-var': 'error',
+            'no-dupe-args': 'error',
+            'no-dupe-keys': 'error',
+            'no-duplicate-case': 'error',
+            'no-empty-character-class': 'error',
+            'no-empty-pattern': 'error',
+            'no-eval': 'error',
+            'no-ex-assign': 'error',
+            'no-extra-bind': 'error',
+            'no-extra-boolean-cast': 'off',
+            'no-fallthrough': 'error',
+            'no-func-assign': 'error',
+            'no-global-assign': 'error',
+            'no-implied-eval': 'error',
+            'no-inner-declarations': ['error', 'functions'],
+            'no-invalid-regexp': 'error',
+            'no-irregular-whitespace': [
+                'error',
+                {
+                    skipStrings: true,
+                    skipTemplates: true,
+                },
+            ],
+            'no-iterator': 'error',
+            'no-label-var': 'error',
+            'no-labels': [
+                'error',
+                {
+                    allowLoop: false,
+                    allowSwitch: false,
+                },
+            ],
+            'no-lone-blocks': 'error',
+            'no-multi-str': 'error',
+            'no-negated-in-lhs': 'error',
+            'no-new-func': 'error',
+            'no-new-object': 'error',
+            'no-new-require': 'error',
+            'no-new-wrappers': 'error',
+            'no-obj-calls': 'error',
+            'no-octal': 'error',
+            'no-octal-escape': 'error',
+            'no-path-concat': 'error',
+            'no-proto': 'error',
+            'no-prototype-builtins': 'off',
+            'no-redeclare': 'error',
+            'no-regex-spaces': 'error',
+            'no-return-assign': ['error', 'except-parens'],
+            'no-return-await': 'error',
+            'no-self-assign': 'error',
+            'no-self-compare': 'error',
+            'no-sequences': 'error',
+            'no-shadow-restricted-names': 'error',
+            'no-sparse-arrays': 'error',
+            'no-template-curly-in-string': 'error',
+            'no-throw-literal': 'error',
+            'no-undef-init': 'error',
+            'no-unexpected-multiline': 'error',
+            'no-unmodified-loop-condition': 'error',
+            'no-unneeded-ternary': ['error'],
+            'no-unreachable': 'error',
+            'no-unsafe-finally': 'error',
+            'no-unsafe-negation': 'error',
+            'no-unused-expressions': [
+                'error',
+                {
+                    allowShortCircuit: true,
+                    allowTernary: true,
+                    allowTaggedTemplates: true,
+                },
+            ],
+            'no-useless-call': 'error',
+            'no-useless-escape': 'error',
+            'no-useless-return': 'error',
+            'no-with': 'error',
+            'one-var': [
+                'error',
+                {
+                    initialized: 'never',
+                },
+            ],
+            'prefer-promise-reject-errors': 'error',
+            'spaced-comment': [
+                'error',
+                'always',
+                {
+                    line: {
+                        markers: ['*package', '!', '/', ',', '='],
+                    },
+                    block: {
+                        balanced: true,
+                        markers: ['*package', '!', ',', ':', '::', 'flow-include'],
+                        exceptions: ['*'],
+                    },
+                },
+            ],
+            'unicode-bom': ['error', 'never'],
+            'use-isnan': 'error',
+            'valid-typeof': [
+                'error',
+                {
+                    requireStringLiterals: true,
+                },
+            ],
+            'wrap-iife': [
+                'error',
+                'any',
+                {
+                    functionPrototypeMethods: true,
+                },
+            ],
+            yoda: ['error', 'never'],
             'no-empty': 'error',
-            'no-use-before-define': 'off',
-            'max-classes-per-file': 'off',
-            'max-lines': 'off',
-            'handle-callback-err': 'off',
             '@typescript-eslint/array-type': 'off',
             '@typescript-eslint/no-restricted-imports': ['error', 'rxjs/Rx'],
             '@typescript-eslint/no-unused-vars': 'error',
@@ -89,7 +236,7 @@ const merchantPortalProjectConfig = [
         },
     },
     {
-        files: ['src/Pyz/*/src/Pyz/Zed/*/Presentation/Components/**/*.html'],
+        files: buildProjectPatterns('html'),
         languageOptions: {
             parser: angularEslint.templateParser,
         },
@@ -109,8 +256,6 @@ const merchantPortalProjectConfig = [
     },
 ];
 
-const CORE_TYPESCRIPT_PATTERN = 'src/Spryker/*/src/Spryker/Zed/*/Presentation/Components/**/*.ts';
-const CORE_TEMPLATE_PATTERN = 'src/Spryker/*/src/Spryker/Zed/*/Presentation/Components/**/*.html';
 const CORE_TYPESCRIPT_PROGRAMS = [
     configurationPath(BUILD_CONFIGURATION_FILE_NAME),
     configurationPath(SPEC_CONFIGURATION_FILE_NAME),
@@ -119,7 +264,7 @@ const CORE_TYPESCRIPT_PROGRAMS = [
 
 export const merchantPortalCoreConfig = merchantPortalProjectConfig.map((block) => {
     const isTemplateBlock = block.files.some((pattern) => pattern.endsWith('.html'));
-    const coreBlock = { ...block, files: [isTemplateBlock ? CORE_TEMPLATE_PATTERN : CORE_TYPESCRIPT_PATTERN] };
+    const coreBlock = { ...block, files: [buildCorePattern(isTemplateBlock ? 'html' : 'ts')] };
 
     if (!isTemplateBlock) {
         coreBlock.languageOptions = {

@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 import {
     ENTRY_POINT_NAME_PREFIX,
+    PROJECT_SETTINGS_RELATIVE_PATH,
     SINGLE_ENTRY_POINT_MARKER,
     SINGLE_ENTRY_POINT_NAME,
     type MerchantPortalBuilderSettings,
@@ -75,21 +76,28 @@ export const discoverEntryPoints = async (settings: MerchantPortalBuilderSetting
         settings.paths.coreModulesDirectory,
         settings.globs.coreEntryPointFile,
     );
-    const projectEntryPoints = await collectEntryPoints(
-        settings.paths.projectModulesDirectory,
-        settings.globs.projectEntryPointFile,
-    );
+    // Later directories win over earlier ones, so the order a project registers its namespaces in is
+    // the order they override each other in.
+    const projectEntryPoints: Record<string, string> = {};
+
+    for (const projectModulesDirectory of settings.paths.projectModulesDirectories) {
+        Object.assign(
+            projectEntryPoints,
+            await collectEntryPoints(projectModulesDirectory, settings.globs.projectEntryPointFile),
+        );
+    }
 
     if (entryPointFiles.length === 0) {
         throw new Error(
             `No Merchant Portal entry point was found for ${settings.context} ` +
                 `(detected layout: ${settings.layout.name}).\n` +
                 `Scanned "${settings.paths.coreModulesDirectory}" for ` +
-                `"${settings.globs.coreEntryPointFile}" and "${settings.paths.projectModulesDirectory}" for ` +
+                `"${settings.globs.coreEntryPointFile}" and "${settings.paths.projectModulesDirectories.join('", "')}" for ` +
                 `"${settings.globs.projectEntryPointFile}" and matched nothing, so no module would ` +
                 `register itself and the built application would be empty.\n` +
-                `Run the build from the project root, and check that the Merchant Portal modules are ` +
-                `installed there.\n`,
+                `Run the build from the project root, check that the Merchant Portal modules are ` +
+                `installed there, and register a project namespace outside src/Pyz in ` +
+                `./${PROJECT_SETTINGS_RELATIVE_PATH}.\n`,
         );
     }
 

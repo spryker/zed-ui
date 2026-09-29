@@ -6,6 +6,7 @@ import {
     WEBPACK_CONFIG_MODULE_RELATIVE_PATH,
     merchantPortalSourceLayouts,
     type MerchantPortalBuilderSettings,
+    type MerchantPortalSourceLayout,
 } from '../settings.mts';
 import {
     matchesAnyPathTemplate,
@@ -78,92 +79,106 @@ const resolveMerchantPortalProject = (configuration: AngularConfiguration): Angu
             `The builder rewrites the paths it owns inside that project, so it has to know which one it is.\n` +
             `Rename your Merchant Portal project to "${MERCHANT_PORTAL_PROJECT_NAME}", or remove the ` +
             `unrelated projects from ${ANGULAR_CONFIGURATION_FILE_NAME}, then re-run ` +
-            `"npm run mp:update:config".\n`,
+            `"npm run update:config -w mp-zed-ui".\n`,
     );
 };
 
-const buildDefaultAngularConfiguration = (): AngularConfiguration => ({
-    $schema: './node_modules/@angular/cli/lib/config/schema.json',
-    version: 1,
-    newProjectRoot: 'src',
-    projects: {
-        [MERCHANT_PORTAL_PROJECT_NAME]: {
-            projectType: 'application',
-            schematics: {},
-            root: '',
-            sourceRoot: 'src',
-            prefix: 'mp',
-            architect: {
-                build: {
-                    builder: '@angular-builders/custom-webpack:browser',
-                    // Declared empty so a newly created file gets the builder-owned options in place
-                    // rather than appended after the project-owned ones.
-                    options: {
-                        customWebpackConfig: { path: '', mergeRules: {} },
-                        indexTransform: '',
-                        outputPath: '',
-                        baseHref: '',
-                        index: 'src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components/index.html',
-                        main: 'src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components/main.ts',
-                        polyfills: 'src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components/polyfills.ts',
-                        tsConfig: '',
-                        assets: [
-                            {
-                                glob: '*/Presentation/Components/assets/**/*',
-                                input: 'src/Pyz/*/src/Pyz/Zed',
-                                output: '/assets/',
-                            },
-                            {
-                                glob: '*/data/files/**/*',
-                                input: 'src/Pyz/*/src/Pyz/Zed',
-                                output: '/static/',
-                            },
-                        ],
-                        styles: ['src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components/styles.less'],
-                        scripts: [],
-                    },
-                    configurations: {
-                        development: {
-                            buildOptimizer: false,
-                            optimization: false,
-                            vendorChunk: true,
-                            extractLicenses: false,
-                            sourceMap: true,
-                            namedChunks: true,
+const ASSETS_OUTPUT = '/assets/';
+const STATIC_OUTPUT = '/static/';
+
+// One asset pair per module directory: the component assets and the static data files.
+const buildModuleAssets = (directory: string, globs: { assetFiles: string; staticFiles: string }): AngularAsset[] => [
+    { glob: globs.assetFiles, input: joinConfigurationPath(directory), output: ASSETS_OUTPUT },
+    { glob: globs.staticFiles, input: joinConfigurationPath(directory), output: STATIC_OUTPUT },
+];
+
+const PROJECT_ASSET_GLOBS = { assetFiles: '*/Presentation/Components/assets/**/*', staticFiles: '*/data/files/**/*' };
+
+const buildProjectAssets = (layout: MerchantPortalSourceLayout): AngularAsset[] =>
+    Object.values(layout.projectModulesDirectories).flatMap((directory) =>
+        buildModuleAssets(directory, PROJECT_ASSET_GLOBS),
+    );
+
+// The project application and module directories differ per source layout.
+const buildDefaultAngularConfiguration = (layout: MerchantPortalSourceLayout): AngularConfiguration => {
+    const applicationFile = (fileName: string): string =>
+        joinConfigurationPath(layout.projectApplicationDirectory, fileName);
+
+    return {
+        $schema: './node_modules/@angular/cli/lib/config/schema.json',
+        version: 1,
+        newProjectRoot: 'src',
+        projects: {
+            [MERCHANT_PORTAL_PROJECT_NAME]: {
+                projectType: 'application',
+                schematics: {},
+                root: '',
+                sourceRoot: 'src',
+                prefix: 'mp',
+                architect: {
+                    build: {
+                        builder: '@angular-builders/custom-webpack:browser',
+                        // Declared empty so a newly created file gets the builder-owned options in place
+                        // rather than appended after the project-owned ones.
+                        options: {
+                            customWebpackConfig: { path: '', mergeRules: {} },
+                            indexTransform: '',
+                            outputPath: '',
+                            baseHref: '',
+                            index: applicationFile('index.html'),
+                            main: applicationFile('main.ts'),
+                            polyfills: applicationFile('polyfills.ts'),
+                            tsConfig: '',
+                            assets: buildProjectAssets(layout),
+                            styles: [applicationFile('styles.less')],
+                            scripts: [],
                         },
-                        production: {
-                            fileReplacements: [
-                                {
-                                    replace:
-                                        'src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components/environments/environment.ts',
-                                    with: 'src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components/environments/environment.prod.ts',
-                                },
-                            ],
-                            optimization: { scripts: true, styles: { minify: true, inlineCritical: false } },
-                            outputHashing: 'none',
-                            sourceMap: false,
-                            namedChunks: false,
-                            extractLicenses: true,
-                            vendorChunk: true,
-                            buildOptimizer: true,
-                            budgets: [{ type: 'bundle', maximumWarning: '2mb', maximumError: '5mb' }],
+                        configurations: {
+                            development: {
+                                buildOptimizer: false,
+                                optimization: false,
+                                vendorChunk: true,
+                                extractLicenses: false,
+                                sourceMap: true,
+                                namedChunks: true,
+                            },
+                            production: {
+                                fileReplacements: [
+                                    {
+                                        replace: applicationFile('environments/environment.ts'),
+                                        with: applicationFile('environments/environment.prod.ts'),
+                                    },
+                                ],
+                                optimization: { scripts: true, styles: { minify: true, inlineCritical: false } },
+                                outputHashing: 'none',
+                                sourceMap: false,
+                                namedChunks: false,
+                                extractLicenses: true,
+                                vendorChunk: true,
+                                buildOptimizer: true,
+                                budgets: [{ type: 'bundle', maximumWarning: '2mb', maximumError: '5mb' }],
+                            },
                         },
+                        defaultConfiguration: 'development',
                     },
-                    defaultConfiguration: 'development',
-                },
-                test: {
-                    builder: '@angular-builders/jest:run',
-                    options: {},
+                    test: {
+                        builder: '@angular-builders/jest:run',
+                        options: {},
+                    },
                 },
             },
         },
-    },
-    cli: { analytics: false },
-});
+        cli: { analytics: false },
+    };
+};
 
-const isCoreInput = (assetInput: string): boolean =>
-    merchantPortalSourceLayouts.some(
-        (layout) => joinConfigurationPath(assetInput) === joinConfigurationPath(layout.coreModulesDirectory),
+// An asset root the builder wrote, under this layout, the other layout, or a namespace the project
+// registered: each is replaced on reconciliation instead of accumulating next to the current set.
+const isGeneratedInput = (assetInput: string, layout: MerchantPortalSourceLayout): boolean =>
+    [...merchantPortalSourceLayouts, layout].some((knownLayout) =>
+        [knownLayout.coreModulesDirectory, ...Object.values(knownLayout.projectModulesDirectories)].some(
+            (directory) => joinConfigurationPath(assetInput) === joinConfigurationPath(directory),
+        ),
     );
 
 // @angular-builders/jest renamed `configPath` to `config` and introduced `zoneless` in 22.
@@ -197,7 +212,7 @@ export const reconcileAngularConfiguration = async (
     const filePath = join(settings.context, ANGULAR_CONFIGURATION_FILE_NAME);
     const existingConfiguration = readConfigurationFile<AngularConfiguration>(filePath);
     const wasCreated = existingConfiguration === null;
-    const configuration = existingConfiguration ?? buildDefaultAngularConfiguration();
+    const configuration = existingConfiguration ?? buildDefaultAngularConfiguration(layout);
     const project = resolveMerchantPortalProject(configuration);
 
     // The nested containers are created when missing, so a configuration that lacks a build or test
@@ -217,18 +232,13 @@ export const reconcileAngularConfiguration = async (
     buildOptions.assets = reconcileEntryList<AngularAsset>(
         buildOptions.assets,
         [
-            {
-                glob: settings.globs.coreAssetFiles,
-                input: joinConfigurationPath(layout.coreModulesDirectory),
-                output: '/assets/',
-            },
-            {
-                glob: settings.globs.coreStaticFiles,
-                input: joinConfigurationPath(layout.coreModulesDirectory),
-                output: '/static/',
-            },
+            ...buildModuleAssets(layout.coreModulesDirectory, {
+                assetFiles: settings.globs.coreAssetFiles,
+                staticFiles: settings.globs.coreStaticFiles,
+            }),
+            ...buildProjectAssets(layout),
         ],
-        (existingAsset) => isCoreInput(existingAsset.input),
+        (existingAsset) => isGeneratedInput(existingAsset.input, layout),
     );
 
     buildOptions.styles = reconcileEntryList<string>(buildOptions.styles, [coreStylesPath], (existingStyle) =>

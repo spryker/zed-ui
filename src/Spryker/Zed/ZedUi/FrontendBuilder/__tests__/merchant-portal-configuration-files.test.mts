@@ -118,7 +118,7 @@ describe('where the Merchant Portal configuration files live', () => {
 // The layout-dependent parts of these files are generated, because their paths depend on where the
 // core modules are installed. Everything else stays project-owned. A difference here means a
 // generated value was edited by hand, or a core module was added without regenerating: run
-// "npm run mp:update:config".
+// "npm run update:config -w mp-zed-ui".
 describe('Merchant Portal configuration files on disk', () => {
     it('hold the generated values the generator would write today', async () => {
         const reconciledConfigurations = await reconcileProjectConfigurations();

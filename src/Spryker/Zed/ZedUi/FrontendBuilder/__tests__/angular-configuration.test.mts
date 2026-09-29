@@ -53,10 +53,34 @@ describe('writing angular.json from scratch', () => {
 
         expect(buildOptions.styles).toEqual([
             'vendor/spryker/zed-ui/src/Spryker/Zed/ZedUi/Presentation/Components/styles.less',
-            'src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components/styles.less',
+            'src/Pyz/Zed/ZedUi/Presentation/Components/styles.less',
         ]);
         expect((buildOptions.assets as AngularAsset[])[0].input).toBe('vendor/spryker');
         expect(testOptions.config).toBe('vendor/spryker/zed-ui/src/Spryker/Zed/ZedUi/FrontendBuilder/jest.config.mjs');
+    });
+
+    it('points a newly created file at the project application of the vendor layout', async () => {
+        const buildOptions = await buildOptionsOf('configuration-project');
+
+        expect(buildOptions.index).toBe('src/Pyz/Zed/ZedUi/Presentation/Components/index.html');
+        expect(buildOptions.main).toBe('src/Pyz/Zed/ZedUi/Presentation/Components/main.ts');
+        expect(buildOptions.polyfills).toBe('src/Pyz/Zed/ZedUi/Presentation/Components/polyfills.ts');
+        expect((buildOptions.assets as AngularAsset[]).map((asset) => asset.input)).toContain('src/Pyz/Zed');
+    });
+
+    it('points a newly created file at the project application a project registered', async () => {
+        const settings = resolveBuilderSettings(fixturePath('configuration-project'), {
+            paths: { projectApplicationDirectory: './src/Acme/Zed/ZedUi/Presentation/Components' },
+        });
+        const { configuration } = await reconcileAngularConfiguration(settings, TYPESCRIPT_CONFIGURATION_FILE_NAMES);
+        const buildOptions = configuration.projects?.[MERCHANT_PORTAL_PROJECT_NAME]?.architect?.build
+            ?.options as Record<string, unknown>;
+
+        expect(buildOptions.main).toBe('src/Acme/Zed/ZedUi/Presentation/Components/main.ts');
+        expect(buildOptions.styles).toEqual([
+            'vendor/spryker/zed-ui/src/Spryker/Zed/ZedUi/Presentation/Components/styles.less',
+            'src/Acme/Zed/ZedUi/Presentation/Components/styles.less',
+        ]);
     });
 
     it('keeps the jest builder on zone.js change detection', async () => {
@@ -86,7 +110,7 @@ describe('reconciling an angular.json a project already has', () => {
         expect(buildOptions.outputPath).toBe('public/MerchantPortal/assets/js');
     });
 
-    it('replaces the core asset roots and keeps the ones the project added', async () => {
+    it('replaces the core and project module asset roots and keeps the ones the project added', async () => {
         const buildOptions = await buildOptionsOf('configuration-existing');
 
         expect(buildOptions.assets).toEqual([
@@ -101,6 +125,27 @@ describe('reconciling an angular.json a project already has', () => {
                 input: 'src/Pyz/*/src/Pyz/Zed',
                 output: '/assets/',
             },
+            { glob: '*/data/files/**/*', input: 'src/Pyz/*/src/Pyz/Zed', output: '/static/' },
+            { glob: '**/*', input: 'src/Pyz/Custom/assets', output: '/custom/' },
+        ]);
+    });
+
+    it('adds the asset roots of a registered project namespace next to the default one', async () => {
+        const settings = resolveBuilderSettings(fixturePath('configuration-existing'), {
+            paths: { projectModulesDirectories: { acme: './src/Acme/*/src/Acme/Zed' } },
+        });
+        const { configuration } = await reconcileAngularConfiguration(settings, TYPESCRIPT_CONFIGURATION_FILE_NAMES);
+        const buildOptions = configuration.projects?.[MERCHANT_PORTAL_PROJECT_NAME]?.architect?.build
+            ?.options as Record<string, unknown>;
+
+        expect((buildOptions.assets as AngularAsset[]).map((asset) => asset.input)).toEqual([
+            'src/Spryker',
+            'src/Spryker',
+            'src/Pyz/*/src/Pyz/Zed',
+            'src/Pyz/*/src/Pyz/Zed',
+            'src/Acme/*/src/Acme/Zed',
+            'src/Acme/*/src/Acme/Zed',
+            'src/Pyz/Custom/assets',
         ]);
     });
 
@@ -118,7 +163,7 @@ describe('reconciling an angular.json a project already has', () => {
 describe('an angular.json whose Merchant Portal project cannot be identified', () => {
     it('names the projects it found and what to do about them', async () => {
         await expect(reconcileFixture('configuration-unknown-project')).rejects.toThrow(
-            /angular\.json[\s\S]*back-office, storefront[\s\S]*which one it is[\s\S]*mp:update:config/,
+            /angular\.json[\s\S]*back-office, storefront[\s\S]*which one it is[\s\S]*update:config -w mp-zed-ui/,
         );
     });
 });

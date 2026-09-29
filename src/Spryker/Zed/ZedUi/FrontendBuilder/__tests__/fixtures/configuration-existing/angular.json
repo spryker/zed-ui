@@ -22,6 +22,11 @@
                                 "glob": "*/Presentation/Components/assets/**/*",
                                 "input": "src/Pyz/*/src/Pyz/Zed",
                                 "output": "/assets/"
+                            },
+                            {
+                                "glob": "**/*",
+                                "input": "src/Pyz/Custom/assets",
+                                "output": "/custom/"
                             }
                         ],
                         "styles": [
@@ -31,7 +36,13 @@
                     },
                     "configurations": {
                         "production": {
-                            "budgets": [{ "type": "bundle", "maximumWarning": "9mb", "maximumError": "9mb" }]
+                            "budgets": [
+                                {
+                                    "type": "bundle",
+                                    "maximumWarning": "9mb",
+                                    "maximumError": "9mb"
+                                }
+                            ]
                         }
                     }
                 }

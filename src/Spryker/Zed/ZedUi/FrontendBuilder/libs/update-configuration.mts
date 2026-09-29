@@ -1,14 +1,34 @@
 import { basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { resolveBuilderSettings, type MerchantPortalBuilderSettings } from '../settings.mts';
+import { loadProjectBuilderSettings, type MerchantPortalBuilderSettings } from '../settings.mts';
 import { writeConfigurationFile } from './configuration-file.mts';
+import type { SolutionReconciliation } from './solution-configuration.mts';
 import {
     BUILD_CONFIGURATION_FILE_NAME,
     SPEC_CONFIGURATION_FILE_NAME,
+    reconcileDefaultsConfiguration,
+    reconcileProjectSolution,
     reconcileTypeScriptConfigurations,
     type ReconciledTypeScriptConfiguration,
 } from './typescript-configuration.mts';
 import { reconcileAngularConfiguration } from './angular-configuration.mts';
+
+export const applySolutionReconciliation = (
+    settings: MerchantPortalBuilderSettings,
+    reconciliation: SolutionReconciliation,
+): void => {
+    if (reconciliation.status === 'projectOwned') {
+        console.log(reconciliation.notice);
+
+        return;
+    }
+
+    if (reconciliation.status === 'unchanged') {
+        return;
+    }
+
+    writeConfigurationFile(reconciliation.filePath, reconciliation.configuration);
+};
 
 const resolveConfigurationPath = (
     reconciledConfigurations: ReconciledTypeScriptConfiguration[],
@@ -39,9 +59,14 @@ export const updateMerchantPortalConfiguration = async (settings: MerchantPortal
             spec: resolveConfigurationPath(typeScriptConfigurations, SPEC_CONFIGURATION_FILE_NAME),
         }),
     ];
+    const defaultsConfiguration = await reconcileDefaultsConfiguration(settings);
+
+    // Both files are what the build configuration extends, so they exist before it is written.
+    applySolutionReconciliation(settings, await reconcileProjectSolution(settings));
+    writeConfigurationFile(defaultsConfiguration.filePath, defaultsConfiguration.configuration);
 
     reconciledConfigurations.forEach(({ filePath, configuration }) => {
-        writeConfigurationFile(settings, filePath, configuration);
+        writeConfigurationFile(filePath, configuration);
     });
 };
 
@@ -49,5 +74,5 @@ const isInvokedAsScript =
     process.argv[1] !== undefined && basename(process.argv[1]) === basename(fileURLToPath(import.meta.url));
 
 if (isInvokedAsScript) {
-    await updateMerchantPortalConfiguration(resolveBuilderSettings());
+    await updateMerchantPortalConfiguration(await loadProjectBuilderSettings());
 }

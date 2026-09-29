@@ -42,6 +42,15 @@ export const toConfigurationPathSegments = (configurationPath: string): string[]
 export const joinConfigurationPath = (...configurationPaths: string[]): string =>
     configurationPaths.flatMap(toConfigurationPathSegments).join('/');
 
+// The leading segments of a directory pattern up to its first wildcard: `src/Pyz/*/src/Pyz/Zed`
+// becomes `src/Pyz`, a pattern without a wildcard is returned whole.
+export const toStaticDirectoryPrefix = (directoryPattern: string): string => {
+    const segments = toConfigurationPathSegments(directoryPattern);
+    const firstWildcardIndex = segments.findIndex((segment) => /[*?[{]/.test(segment));
+
+    return (firstWildcardIndex === -1 ? segments : segments.slice(0, firstWildcardIndex)).join('/');
+};
+
 // A path template matches a configuration path segment by segment, with `*` standing for exactly one
 // segment. It is used both to emit the core-derived paths and to recognise the ones a previous run
 // (or a different source layout) emitted, so a stale entry is replaced instead of accumulating.
@@ -78,7 +87,7 @@ export const resolveCoreModuleFilePath = async (
                 `to the project root, and the directory the module is installed into differs per source ` +
                 `layout, so the builder has to discover it.\n` +
                 `Install the Spryker core modules ("composer install" for a project, "npm install" for the ` +
-                `monorepo) and re-run "npm run mp:update:config".\n`,
+                `monorepo) and re-run "npm run update:config -w mp-zed-ui".\n`,
         );
     }
 

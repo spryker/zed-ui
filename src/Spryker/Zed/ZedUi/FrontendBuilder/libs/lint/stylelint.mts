@@ -3,9 +3,9 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { program } from 'commander';
 import stylelint from 'stylelint';
-import { resolveBuilderSettings } from '../../settings.mts';
+import { loadProjectBuilderSettings } from '../../settings.mts';
 
-const settings = resolveBuilderSettings();
+const settings = await loadProjectBuilderSettings();
 
 program
     .option('-f, --fix', 'execute stylelint in the fix mode.')
@@ -16,7 +16,9 @@ const commandLineOptions = program.opts();
 
 const isFixMode = !!commandLineOptions.fix;
 const defaultFilePaths = [
-    `${settings.paths.projectModulesDirectory}/${settings.globs.projectStyleSheetFiles}`,
+    ...settings.paths.projectModulesDirectories.map(
+        (projectModulesDirectory) => `${projectModulesDirectory}/${settings.globs.projectStyleSheetFiles}`,
+    ),
     ...(settings.layout.ownsCoreModules
         ? [`${settings.paths.coreModulesDirectory}/${settings.globs.coreStyleSheetFiles}`]
         : []),

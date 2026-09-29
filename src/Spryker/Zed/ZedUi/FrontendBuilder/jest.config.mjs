@@ -1,8 +1,9 @@
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { resolveBuilderSettings } from './settings.mts';
+import { loadProjectBuilderSettings } from './settings.mts';
+import { toStaticDirectoryPrefix } from './libs/utils.mts';
 
-const settings = resolveBuilderSettings();
+const settings = await loadProjectBuilderSettings();
 
 // The setup file ships with the builder, and the directories the sources live in differ per source
 // layout, so both are resolved instead of written out.
@@ -12,7 +13,13 @@ export default {
     displayName: 'merchant-portal',
     preset: 'jest-preset-angular',
     setupFilesAfterEnv: [setupFilePath],
-    roots: [join(settings.context, 'src/Pyz'), settings.paths.coreModulesDirectory],
+    // Jest roots are directories, so a module directory pattern is cut at its first wildcard.
+    roots: [
+        ...Object.values(settings.layout.projectModulesDirectories).map((directory) =>
+            join(settings.context, toStaticDirectoryPrefix(directory)),
+        ),
+        settings.paths.coreModulesDirectory,
+    ],
     testMatch: ['**/+(*.)+(spec|test).+(ts|js)?(x)'],
     moduleFileExtensions: ['ts', 'js', 'html'],
     passWithNoTests: true,

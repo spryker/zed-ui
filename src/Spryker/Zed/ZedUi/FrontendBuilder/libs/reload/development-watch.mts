@@ -1,4 +1,5 @@
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Configuration, EntryObject } from 'webpack';
 import type { CustomWebpackBrowserSchema, TargetOptions } from '@angular-builders/custom-webpack';
 import { MANIFEST_FILENAME, createManifestWriterPlugin } from './manifest-writer.mts';
@@ -8,6 +9,10 @@ import type { MerchantPortalBuilderSettings } from '../../settings.mts';
 const PRODUCTION_CONFIGURATION_NAME = 'production';
 
 const RELOAD_CLIENT_HOST_ENTRY_NAME = 'polyfills';
+
+// Where the module is installed differs per source layout, so the files an error names are resolved.
+const SETTINGS_FILE_PATH = fileURLToPath(new URL('../../settings.mts', import.meta.url));
+const DEVELOPMENT_WATCH_FILE_PATH = fileURLToPath(import.meta.url);
 
 export interface DevelopmentWatchReloadOptions {
     config: Configuration;
@@ -29,8 +34,7 @@ const resolveOutputDirectory = (
         throw new Error(
             `The Merchant Portal live-reload manifest cannot be placed: the "outputPath" of the ` +
                 `merchant-portal build target resolves to ${outputDirectoryFromBuilder}, but ` +
-                `settings.paths.outputDirectory in ` +
-                `src/Spryker/ZedUi/src/Spryker/Zed/ZedUi/FrontendBuilder/settings.mts says ` +
+                `settings.paths.outputDirectory in ${SETTINGS_FILE_PATH} says ` +
                 `${settings.paths.outputDirectory}. The two must name the same directory, otherwise the ` +
                 `browser would poll a manifest URL that nothing writes to. ` +
                 `Update settings.mts to match angular.json (or revert the angular.json change).`,
@@ -50,8 +54,7 @@ const prependReloadClientToHostEntry = (config: Configuration, reloadClientPath:
                 `webpack entry: it is ${JSON.stringify(hostEntry)}, but only a file path or an array of ` +
                 `file paths can be prepended to. ` +
                 `The entry is produced by @angular-devkit/build-angular, so this most likely means the ` +
-                `Angular build changed its entry shape — update ` +
-                `src/Spryker/ZedUi/src/Spryker/Zed/ZedUi/FrontendBuilder/libs/reload/development-watch.mts ` +
+                `Angular build changed its entry shape — update ${DEVELOPMENT_WATCH_FILE_PATH} ` +
                 `to handle the new shape.`,
         );
     }

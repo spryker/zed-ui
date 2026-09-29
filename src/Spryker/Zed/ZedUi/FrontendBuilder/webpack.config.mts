@@ -1,6 +1,6 @@
 import type { CustomWebpackBrowserSchema, TargetOptions } from '@angular-builders/custom-webpack';
 import type { Configuration } from 'webpack';
-import { resolveBuilderSettings } from './settings.mts';
+import { loadProjectBuilderSettings } from './settings.mts';
 import { discoverEntryPoints } from './libs/entry-points.mts';
 import { applyDevelopmentWatchReload } from './libs/reload/development-watch.mts';
 
@@ -9,7 +9,7 @@ export default async (
     options: CustomWebpackBrowserSchema,
     targetOptions: TargetOptions,
 ): Promise<Configuration> => {
-    const settings = resolveBuilderSettings();
+    const settings = await loadProjectBuilderSettings();
 
     console.log('Resolving entry points...');
 
@@ -33,6 +33,16 @@ export default async (
     config.output = {
         ...config.output,
         publicPath: settings.urls.assetsPublicPath,
+    };
+
+    // webpack 5.111 checks every imported name, including interfaces the emitted code still names;
+    // TypeScript already rejects an import of an export that does not exist.
+    config.module = {
+        ...config.module,
+        parser: {
+            ...config.module?.parser,
+            javascript: { ...config.module?.parser?.javascript, importExportsPresence: false },
+        },
     };
 
     applyDevelopmentWatchReload({ config, options, targetOptions, settings });
