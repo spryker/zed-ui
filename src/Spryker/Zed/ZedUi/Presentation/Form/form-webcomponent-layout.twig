@@ -216,13 +216,10 @@ For more information on this topic, see
 {%- endblock choice_widget -%}
 
 {%- block choice_widget_options -%}
-    {% set translatedChoices = [] %}
-    {% for group_label, choice in options %}
-        {% set translatedChoices = translatedChoices | merge([{
-            'title' : choice_translation_domain is same as(false) ? choice.label : choice.label|trans({}, choice_translation_domain),
-            'value' : choice.value,
-        }]) %}
-    {% endfor %}
+    {% set translatedChoices = [] | merge(options | map(choice => {
+        'title' : choice_translation_domain is same as(false) ? choice.label : choice.label|trans({}, choice_translation_domain),
+        'value' : choice.value,
+    })) %}
     options="{{ translatedChoices | json_encode() }}"
 {%- endblock choice_widget_options -%}
 
