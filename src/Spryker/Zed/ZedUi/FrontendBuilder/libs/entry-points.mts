@@ -72,12 +72,17 @@ export const discoverEntryPoints = async (settings: MerchantPortalBuilderSetting
         return Object.assign({}, ...collected);
     };
 
-    const coreEntryPoints = await collectEntryPoints(
-        settings.paths.coreModulesDirectory,
-        settings.globs.coreEntryPointFile,
-    );
-    // Later directories win over earlier ones, so the order a project registers its namespaces in is
-    // the order they override each other in.
+    // Later directories win over earlier ones: the core roots come weakest first, and a project
+    // registers its namespaces in the order they override each other in.
+    const coreEntryPoints: Record<string, string> = {};
+
+    for (const coreModulesDirectory of settings.paths.coreModulesDirectories) {
+        Object.assign(
+            coreEntryPoints,
+            await collectEntryPoints(coreModulesDirectory, settings.globs.coreEntryPointFile),
+        );
+    }
+
     const projectEntryPoints: Record<string, string> = {};
 
     for (const projectModulesDirectory of settings.paths.projectModulesDirectories) {
@@ -91,7 +96,7 @@ export const discoverEntryPoints = async (settings: MerchantPortalBuilderSetting
         throw new Error(
             `No Merchant Portal entry point was found for ${settings.context} ` +
                 `(detected layout: ${settings.layout.name}).\n` +
-                `Scanned "${settings.paths.coreModulesDirectory}" for ` +
+                `Scanned "${settings.paths.coreModulesDirectories.join('", "')}" for ` +
                 `"${settings.globs.coreEntryPointFile}" and "${settings.paths.projectModulesDirectories.join('", "')}" for ` +
                 `"${settings.globs.projectEntryPointFile}" and matched nothing, so no module would ` +
                 `register itself and the built application would be empty.\n` +

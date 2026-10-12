@@ -115,7 +115,7 @@ describe('reconciling an angular.json a project already has', () => {
 
         expect(buildOptions.assets).toEqual([
             {
-                glob: '*/src/Spryker/Zed/*/Presentation/Components/assets/**/*',
+                glob: '*/src/*/Zed/*/Presentation/Components/assets/**/*',
                 input: 'src/Spryker',
                 output: '/assets/',
             },

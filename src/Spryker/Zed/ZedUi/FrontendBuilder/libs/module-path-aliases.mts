@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import {
     MODULE_PATH_ALIAS_PREFIX,
     POLYFILLS_MODULE_RELATIVE_PATH,
@@ -29,25 +30,29 @@ export const sortPathAliases = (aliases: ModulePathAliases): ModulePathAliases =
 export const buildGeneratedModulePathAliases = async (
     settings: MerchantPortalBuilderSettings,
 ): Promise<ModulePathAliases> => {
-    const moduleRootDirectories = await expandModuleRootDirectories(settings.paths.coreModulesDirectory);
     const aliases: ModulePathAliases = {};
 
-    for (const moduleRootDirectory of moduleRootDirectories) {
-        const relativeEntryPointPaths = await findEntryPointFiles(
-            moduleRootDirectory,
-            settings.globs.coreEntryPointFile,
-        );
+    // Core roots come weakest first, so a later root's module replaces an earlier alias of the same name.
+    for (const coreModulesDirectory of Object.values(settings.layout.coreModulesDirectories)) {
+        const moduleRootDirectories = await expandModuleRootDirectories(join(settings.context, coreModulesDirectory));
 
-        relativeEntryPointPaths.forEach((relativeEntryPointPath) => {
-            const aliasName = buildEntryPointName(MODULE_PATH_ALIAS_PREFIX, relativeEntryPointPath);
-            const aliasPath = joinConfigurationPath(
-                settings.layout.coreModulesDirectory,
-                getModuleDirectoryName(relativeEntryPointPath),
-                PUBLIC_API_FILE_NAME,
+        for (const moduleRootDirectory of moduleRootDirectories) {
+            const relativeEntryPointPaths = await findEntryPointFiles(
+                moduleRootDirectory,
+                settings.globs.coreEntryPointFile,
             );
 
-            aliases[aliasName] = [`./${aliasPath}`];
-        });
+            relativeEntryPointPaths.forEach((relativeEntryPointPath) => {
+                const aliasName = buildEntryPointName(MODULE_PATH_ALIAS_PREFIX, relativeEntryPointPath);
+                const aliasPath = joinConfigurationPath(
+                    coreModulesDirectory,
+                    getModuleDirectoryName(relativeEntryPointPath),
+                    PUBLIC_API_FILE_NAME,
+                );
+
+                aliases[aliasName] = [`./${aliasPath}`];
+            });
+        }
     }
 
     return sortPathAliases(aliases);
@@ -79,17 +84,19 @@ const isGeneratedModulePathAlias = (aliasName: string, aliasValue: unknown): boo
 
     const valueSegments = segments.slice(firstNamedSegment);
 
-    return merchantPortalSourceLayouts.some((layout) => {
-        const coreDirectorySegments = toConfigurationPathSegments(layout.coreModulesDirectory);
+    return merchantPortalSourceLayouts
+        .flatMap((layout) => Object.values(layout.coreModulesDirectories))
+        .some((coreModulesDirectory) => {
+            const coreDirectorySegments = toConfigurationPathSegments(coreModulesDirectory);
 
-        if (!coreDirectorySegments.every((segment, index) => valueSegments[index] === segment)) {
-            return false;
-        }
+            if (!coreDirectorySegments.every((segment, index) => valueSegments[index] === segment)) {
+                return false;
+            }
 
-        const moduleRelativeSegments = valueSegments.slice(coreDirectorySegments.length + 1);
+            const moduleRelativeSegments = valueSegments.slice(coreDirectorySegments.length + 1);
 
-        return GENERATED_ALIAS_MODULE_RELATIVE_PATHS.includes(moduleRelativeSegments.join('/'));
-    });
+            return GENERATED_ALIAS_MODULE_RELATIVE_PATHS.includes(moduleRelativeSegments.join('/'));
+        });
 };
 
 export const mergeModulePathAliases = (

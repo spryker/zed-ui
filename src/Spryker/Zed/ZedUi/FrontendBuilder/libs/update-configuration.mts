@@ -74,5 +74,7 @@ const isInvokedAsScript =
     process.argv[1] !== undefined && basename(process.argv[1]) === basename(fileURLToPath(import.meta.url));
 
 if (isInvokedAsScript) {
-    await updateMerchantPortalConfiguration(await loadProjectBuilderSettings());
+    const settings = await loadProjectBuilderSettings();
+    console.log(`Build configuration: ${settings.buildConfigurationSource}`);
+    await updateMerchantPortalConfiguration(settings);
 }

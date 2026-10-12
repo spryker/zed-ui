@@ -176,9 +176,10 @@ const buildDefaultAngularConfiguration = (layout: MerchantPortalSourceLayout): A
 // registered: each is replaced on reconciliation instead of accumulating next to the current set.
 const isGeneratedInput = (assetInput: string, layout: MerchantPortalSourceLayout): boolean =>
     [...merchantPortalSourceLayouts, layout].some((knownLayout) =>
-        [knownLayout.coreModulesDirectory, ...Object.values(knownLayout.projectModulesDirectories)].some(
-            (directory) => joinConfigurationPath(assetInput) === joinConfigurationPath(directory),
-        ),
+        [
+            ...Object.values(knownLayout.coreModulesDirectories),
+            ...Object.values(knownLayout.projectModulesDirectories),
+        ].some((directory) => joinConfigurationPath(assetInput) === joinConfigurationPath(directory)),
     );
 
 // @angular-builders/jest renamed `configPath` to `config` and introduced `zoneless` in 22.
@@ -232,10 +233,12 @@ export const reconcileAngularConfiguration = async (
     buildOptions.assets = reconcileEntryList<AngularAsset>(
         buildOptions.assets,
         [
-            ...buildModuleAssets(layout.coreModulesDirectory, {
-                assetFiles: settings.globs.coreAssetFiles,
-                staticFiles: settings.globs.coreStaticFiles,
-            }),
+            ...Object.values(layout.coreModulesDirectories).flatMap((coreModulesDirectory) =>
+                buildModuleAssets(coreModulesDirectory, {
+                    assetFiles: settings.globs.coreAssetFiles,
+                    staticFiles: settings.globs.coreStaticFiles,
+                }),
+            ),
             ...buildProjectAssets(layout),
         ],
         (existingAsset) => isGeneratedInput(existingAsset.input, layout),

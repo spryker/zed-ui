@@ -104,7 +104,7 @@ describe('writing the Merchant Portal TypeScript configurations from scratch', (
         );
 
         expect(lintConfiguration.include).toEqual([
-            '../../../../../../../../vendor/spryker/*/src/Spryker/Zed/*/Presentation/Components/*.ts',
+            '../../../../../../../../vendor/spryker/*/src/*/Zed/*/Presentation/Components/*.ts',
             '../../../../../../../../src/Pyz/Zed/*/Presentation/Components/*.ts',
         ]);
     });
@@ -119,7 +119,7 @@ describe('writing the Merchant Portal TypeScript configurations from scratch', (
         const reconciledConfigurations = await reconcileTypeScriptConfigurations(settings);
 
         expect(configurationOf(reconciledConfigurations, LINT_CONFIGURATION_FILE_NAME).include).toEqual([
-            '../../../../../../../../vendor/spryker/*/src/Spryker/Zed/*/Presentation/Components/*.ts',
+            '../../../../../../../../vendor/spryker/*/src/*/Zed/*/Presentation/Components/*.ts',
             '../../../../../../../../src/Pyz/Zed/*/Presentation/Components/*.ts',
             '../../../../../../../../src/Acme/Zed/*/Presentation/Components/*.ts',
         ]);
@@ -127,7 +127,7 @@ describe('writing the Merchant Portal TypeScript configurations from scratch', (
             '../../../../../../../../src/Acme/Zed/ZedUi/Presentation/Components/main.ts',
             '../../../../../../../../src/Acme/Zed/ZedUi/Presentation/Components/polyfills.ts',
             '../../../../../../../../src/Acme/Zed/ZedUi/Presentation/Components/environments/environment.prod.ts',
-            '../../../../../../../../vendor/spryker/*/src/Spryker/Zed/*/Presentation/Components/entry.ts',
+            '../../../../../../../../vendor/spryker/*/src/*/Zed/*/Presentation/Components/entry.ts',
             '../../../../../../../../src/Pyz/Zed/*/Presentation/Components/entry.ts',
             '../../../../../../../../src/Acme/Zed/*/Presentation/Components/entry.ts',
         ]);
@@ -269,7 +269,7 @@ describe('reconciling configurations a project already has', () => {
             'src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components/main.ts',
             'src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components/polyfills.ts',
             'src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components/environments/environment.prod.ts',
-            'src/Spryker/*/src/Spryker/Zed/*/Presentation/Components/entry.ts',
+            'src/Spryker/*/src/*/Zed/*/Presentation/Components/entry.ts',
             'src/Pyz/*/src/Pyz/Zed/*/Presentation/Components/entry.ts',
             'src/Pyz/Custom/hand-written.ts',
         ]);

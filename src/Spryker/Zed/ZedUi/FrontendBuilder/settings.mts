@@ -1,5 +1,5 @@
 import { dirname, join, resolve } from 'node:path';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 export const SINGLE_ENTRY_POINT_NAME = 'spy/merchant-portal';
@@ -30,7 +30,10 @@ export interface MerchantPortalSourceLayout {
     name: string;
     marker: string;
     ownsCoreModules: boolean;
+    /** The root of the namespace that ships ZedUi: its polyfills, stylesheet, builder and test setup are found below it. */
     coreModulesDirectory: string;
+    /** Every core namespace root, weakest first; all of them are scanned for Merchant Portal modules. */
+    coreModulesDirectories: Record<string, string>;
     // Keyed so a project can register a further namespace next to the default one instead of
     // replacing it; the values are project-root-relative directory patterns holding Zed modules.
     projectModulesDirectories: Record<string, string>;
@@ -44,6 +47,7 @@ export interface MerchantPortalBuilderSettings {
     layout: MerchantPortalSourceLayout;
     paths: {
         coreModulesDirectory: string;
+        coreModulesDirectories: string[];
         projectModulesDirectories: string[];
         sprykerPackagesDirectory: string;
         angularPackagesDirectory: string;
@@ -64,13 +68,97 @@ export interface MerchantPortalBuilderSettings {
     urls: {
         assetsPublicPath: string;
     };
+    buildConfigurationSource: string;
 }
+
+// Written by the backend before every build; without it the built-in layout stays in effect.
+export const BUILD_CONFIGURATION_PATH = 'data/cache/MerchantPortal/frontend/build-config.json';
+
+export interface GeneratedBuildConfiguration {
+    /** Strongest first. */
+    coreNamespaces: string[];
+    projectNamespaces: string[];
+}
+
+export const readGeneratedBuildConfiguration = (context: string): GeneratedBuildConfiguration | null => {
+    const filePath = join(context, BUILD_CONFIGURATION_PATH);
+
+    if (!existsSync(filePath)) {
+        return null;
+    }
+
+    const parsed: Partial<GeneratedBuildConfiguration> = JSON.parse(readFileSync(filePath, 'utf8'));
+
+    if (!Array.isArray(parsed.coreNamespaces) || !Array.isArray(parsed.projectNamespaces)) {
+        throw new Error(
+            `${filePath}: "coreNamespaces" and "projectNamespaces" must be lists of namespace names; ` +
+                `regenerate the file with "vendor/bin/console frontend:mp:build".`,
+        );
+    }
+
+    return parsed as GeneratedBuildConfiguration;
+};
+
+const dasherize = (value: string): string => value.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+
+// `src/<Namespace>` when the repository holds the modules, the Composer package directory otherwise.
+const resolveNamespaceDirectory = (context: string, namespace: string): string =>
+    existsSync(join(context, 'src', namespace)) ? `./src/${namespace}` : `./vendor/${dasherize(namespace)}`;
+
+const ZED_UI_HOME_NAMESPACE = 'Spryker';
+const APPLICATION_MODULE_RELATIVE_DIRECTORY = 'ZedUi/Presentation/Components';
+
+// A later directory wins, the backend lists the strongest namespace first: the list is reversed. A project
+// root is emitted in both layout shapes (split per module and flat); an empty shape matches nothing.
+const applyGeneratedBuildConfiguration = (
+    context: string,
+    layout: MerchantPortalSourceLayout,
+    generated: GeneratedBuildConfiguration,
+): MerchantPortalSourceLayout => {
+    if (!generated.coreNamespaces.includes(ZED_UI_HOME_NAMESPACE)) {
+        throw new Error(
+            `The Merchant Portal build configuration ${join(context, BUILD_CONFIGURATION_PATH)} lists no ` +
+                `"${ZED_UI_HOME_NAMESPACE}" core namespace, so the ZedUi module that ships the builder cannot be located.\n` +
+                `The backend generates this file before the build; fix the generator or the core namespaces.\n`,
+        );
+    }
+
+    const coreModulesDirectory = resolveNamespaceDirectory(context, ZED_UI_HOME_NAMESPACE);
+    const coreModulesDirectories = Object.fromEntries(
+        [...generated.coreNamespaces]
+            .reverse()
+            .map((namespace) => [namespace.toLowerCase(), resolveNamespaceDirectory(context, namespace)]),
+    );
+    const projectModulesDirectories: Record<string, string> = {};
+    [...generated.projectNamespaces].reverse().forEach((namespace) => {
+        const key = namespace.toLowerCase();
+        projectModulesDirectories[`${key}/Zed`] = `${resolveNamespaceDirectory(context, namespace)}/Zed`;
+        projectModulesDirectories[key] = `${resolveNamespaceDirectory(context, namespace)}/*/src/${namespace}/Zed`;
+    });
+
+    const applicationDirectory = generated.projectNamespaces
+        .flatMap((namespace) => [
+            `${resolveNamespaceDirectory(context, namespace)}/ZedUi/src/${namespace}/Zed/${APPLICATION_MODULE_RELATIVE_DIRECTORY}`,
+            `${resolveNamespaceDirectory(context, namespace)}/Zed/${APPLICATION_MODULE_RELATIVE_DIRECTORY}`,
+        ])
+        .find((candidate) => existsSync(join(context, candidate)));
+
+    return {
+        ...layout,
+        ownsCoreModules: coreModulesDirectory.startsWith('./src/'),
+        coreModulesDirectory,
+        coreModulesDirectories,
+        projectModulesDirectories,
+        projectApplicationDirectory: applicationDirectory ?? layout.projectApplicationDirectory,
+    };
+};
 
 const monorepoSourceLayout: MerchantPortalSourceLayout = {
     name: 'monorepo (modules in src/)',
     marker: 'src/Spryker',
     ownsCoreModules: true,
     coreModulesDirectory: './src/Spryker',
+    coreModulesDirectories: { spryker: './src/Spryker' },
     projectModulesDirectories: { pyz: './src/Pyz/*/src/Pyz/Zed' },
     projectApplicationDirectory: './src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components',
 };
@@ -80,6 +168,7 @@ const projectSourceLayout: MerchantPortalSourceLayout = {
     marker: 'vendor/spryker',
     ownsCoreModules: false,
     coreModulesDirectory: './vendor/spryker',
+    coreModulesDirectories: { spryker: './vendor/spryker' },
     // A project keeps its Zed modules directly under src/Pyz/Zed, not in the per-module split the
     // monorepo uses.
     projectModulesDirectories: { pyz: './src/Pyz/Zed' },
@@ -160,13 +249,21 @@ export const resolveBuilderSettings = (
     overrides: DefineConfigOverrides = {},
 ): MerchantPortalBuilderSettings => {
     const context = explicitContext ?? resolveProjectRoot();
-    const layout = applyLayoutOverrides(resolveSourceLayout(context), overrides);
+    const generated = readGeneratedBuildConfiguration(context);
+    const detectedLayout = resolveSourceLayout(context);
+    const layout = applyLayoutOverrides(
+        generated === null ? detectedLayout : applyGeneratedBuildConfiguration(context, detectedLayout, generated),
+        overrides,
+    );
 
     return {
         context,
         layout,
         paths: {
             coreModulesDirectory: join(context, layout.coreModulesDirectory),
+            coreModulesDirectories: Object.values(layout.coreModulesDirectories).map((directory) =>
+                join(context, directory),
+            ),
             projectModulesDirectories: Object.values(layout.projectModulesDirectories).map((directory) =>
                 join(context, directory),
             ),
@@ -175,20 +272,25 @@ export const resolveBuilderSettings = (
             outputDirectory: join(context, 'public', 'MerchantPortal', 'assets', 'js'),
         },
         globs: {
-            coreEntryPointFile: '*/src/Spryker/Zed/*/Presentation/Components/entry.ts',
+            // `*/src/*/Zed`: one package per core root, whatever namespace the root belongs to.
+            coreEntryPointFile: '*/src/*/Zed/*/Presentation/Components/entry.ts',
             projectEntryPointFile: '*/Presentation/Components/entry.ts',
-            coreSourceFiles: '*/src/Spryker/Zed/*/Presentation/Components/*.ts',
+            coreSourceFiles: '*/src/*/Zed/*/Presentation/Components/*.ts',
             projectSourceFiles: '*/Presentation/Components/*.ts',
-            coreSpecFiles: '*/src/Spryker/Zed/*/Presentation/Components/**/*.spec.ts',
-            coreAssetFiles: '*/src/Spryker/Zed/*/Presentation/Components/assets/**/*',
+            coreSpecFiles: '*/src/*/Zed/*/Presentation/Components/**/*.spec.ts',
+            coreAssetFiles: '*/src/*/Zed/*/Presentation/Components/assets/**/*',
             coreStaticFiles: '*/data/files/**/*',
             projectSpecFiles: '*/Presentation/Components/**/*.spec.ts',
-            coreStyleSheetFiles: '*/src/Spryker/Zed/*/Presentation/Components/**/*.less',
+            coreStyleSheetFiles: '*/src/*/Zed/*/Presentation/Components/**/*.less',
             projectStyleSheetFiles: '*/Presentation/Components/**/*.less',
         },
         urls: {
             assetsPublicPath: '/assets/js/',
         },
+        buildConfigurationSource:
+            generated === null
+                ? `built-in defaults (no ${BUILD_CONFIGURATION_PATH}; the backend generates it)`
+                : `generated (${join(context, BUILD_CONFIGURATION_PATH)})`,
     };
 };
 

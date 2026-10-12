@@ -19,9 +19,9 @@ const defaultFilePaths = [
     ...settings.paths.projectModulesDirectories.map(
         (projectModulesDirectory) => `${projectModulesDirectory}/${settings.globs.projectStyleSheetFiles}`,
     ),
-    ...(settings.layout.ownsCoreModules
-        ? [`${settings.paths.coreModulesDirectory}/${settings.globs.coreStyleSheetFiles}`]
-        : []),
+    ...settings.paths.coreModulesDirectories
+        .filter((coreModulesDirectory) => !coreModulesDirectory.startsWith(join(settings.context, 'vendor')))
+        .map((coreModulesDirectory) => `${coreModulesDirectory}/${settings.globs.coreStyleSheetFiles}`),
 ];
 const filePaths = commandLineOptions.filePath ? [commandLineOptions.filePath] : defaultFilePaths;
 

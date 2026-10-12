@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadProjectBuilderSettings } from './settings.mts';
@@ -14,12 +15,14 @@ export default {
     preset: 'jest-preset-angular',
     setupFilesAfterEnv: [setupFilePath],
     // Jest roots are directories, so a module directory pattern is cut at its first wildcard.
+    // A layout shape the project does not use (the flat `src/Pyz/Zed` in the monorepo) names no
+    // directory, and Jest rejects a root that does not exist.
     roots: [
         ...Object.values(settings.layout.projectModulesDirectories).map((directory) =>
             join(settings.context, toStaticDirectoryPrefix(directory)),
         ),
-        settings.paths.coreModulesDirectory,
-    ],
+        ...settings.paths.coreModulesDirectories,
+    ].filter((directory, index, directories) => existsSync(directory) && directories.indexOf(directory) === index),
     testMatch: ['**/+(*.)+(spec|test).+(ts|js)?(x)'],
     moduleFileExtensions: ['ts', 'js', 'html'],
     passWithNoTests: true,

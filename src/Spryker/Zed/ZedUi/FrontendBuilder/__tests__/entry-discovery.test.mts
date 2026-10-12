@@ -123,7 +123,7 @@ describe('entry point discovery failure', () => {
             ...settings,
             paths: {
                 ...settings.paths,
-                coreModulesDirectory: `${context}/src/NotSpryker`,
+                coreModulesDirectories: [`${context}/src/NotSpryker`],
                 projectModulesDirectories: [`${context}/src/NotPyz/Zed`],
             },
         };

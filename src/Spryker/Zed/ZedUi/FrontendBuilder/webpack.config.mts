@@ -11,6 +11,7 @@ export default async (
 ): Promise<Configuration> => {
     const settings = await loadProjectBuilderSettings();
 
+    console.log(`Build configuration: ${settings.buildConfigurationSource}`);
     console.log('Resolving entry points...');
 
     const { entryPointsMap, entryPointFiles } = await discoverEntryPoints(settings);

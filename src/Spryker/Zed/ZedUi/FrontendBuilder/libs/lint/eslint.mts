@@ -16,14 +16,15 @@ const toProjectPattern = (absoluteDirectory: string, glob: string): string =>
     `./${relative(settings.context, absoluteDirectory)}/${glob}`;
 
 const filePatterns = [
-    ...(settings.layout.ownsCoreModules
-        ? [
-              toProjectPattern(
-                  settings.paths.coreModulesDirectory,
-                  `*/src/Spryker/Zed/*/Presentation/Components/**/*.${LINTED_FILE_EXTENSIONS}`,
-              ),
-          ]
-        : []),
+    // Installed core roots under vendor/ are not ours to report on.
+    ...settings.paths.coreModulesDirectories
+        .filter((coreModulesDirectory) => !coreModulesDirectory.startsWith(join(settings.context, 'vendor')))
+        .map((coreModulesDirectory) =>
+            toProjectPattern(
+                coreModulesDirectory,
+                `*/src/*/Zed/*/Presentation/Components/**/*.${LINTED_FILE_EXTENSIONS}`,
+            ),
+        ),
     ...settings.paths.projectModulesDirectories.map((projectModulesDirectory) =>
         toProjectPattern(projectModulesDirectory, `*/Presentation/Components/**/*.${LINTED_FILE_EXTENSIONS}`),
     ),

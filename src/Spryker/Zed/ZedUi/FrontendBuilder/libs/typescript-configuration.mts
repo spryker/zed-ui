@@ -107,8 +107,8 @@ export type ReconciledTypeScriptConfiguration = ReconciledConfiguration<TypeScri
     configurationPath: string;
 };
 
-const buildLayoutPath = (layout: MerchantPortalSourceLayout, coreGlob: string): string =>
-    joinConfigurationPath(layout.coreModulesDirectory, coreGlob);
+const buildCorePaths = (layout: MerchantPortalSourceLayout, coreGlob: string): string[] =>
+    Object.values(layout.coreModulesDirectories).map((directory) => joinConfigurationPath(directory, coreGlob));
 
 const buildProjectPaths = (layout: MerchantPortalSourceLayout, projectGlob: string): string[] =>
     Object.values(layout.projectModulesDirectories).map((directory) => joinConfigurationPath(directory, projectGlob));
@@ -207,7 +207,7 @@ const buildRecognisedPathTemplates = (
     projectGlobs: string[],
 ): string[] =>
     [...merchantPortalSourceLayouts, effectiveLayout].flatMap((layout) => [
-        ...coreGlobs.map((coreGlob) => joinConfigurationPath(layout.coreModulesDirectory, coreGlob)),
+        ...coreGlobs.flatMap((coreGlob) => buildCorePaths(layout, coreGlob)),
         ...projectGlobs.flatMap((projectGlob) => buildProjectPaths(layout, projectGlob)),
     ]);
 
@@ -252,7 +252,7 @@ const buildConfigurationPlans = async (settings: MerchantPortalBuilderSettings):
                 }),
                 include: [
                     ...buildProjectApplicationFiles(layout),
-                    buildLayoutPath(layout, globs.coreEntryPointFile),
+                    ...buildCorePaths(layout, globs.coreEntryPointFile),
                     ...buildProjectPaths(layout, globs.projectEntryPointFile),
                 ],
             },
@@ -271,7 +271,7 @@ const buildConfigurationPlans = async (settings: MerchantPortalBuilderSettings):
                 files: [testSetupPath],
                 include: [
                     ...buildProjectPaths(layout, globs.projectSpecFiles),
-                    buildLayoutPath(layout, globs.coreSpecFiles),
+                    ...buildCorePaths(layout, globs.coreSpecFiles),
                 ],
             },
         },
@@ -285,7 +285,7 @@ const buildConfigurationPlans = async (settings: MerchantPortalBuilderSettings):
             ),
             sections: {
                 include: [
-                    buildLayoutPath(layout, globs.coreSourceFiles),
+                    ...buildCorePaths(layout, globs.coreSourceFiles),
                     ...buildProjectPaths(layout, globs.projectSourceFiles),
                 ],
             },

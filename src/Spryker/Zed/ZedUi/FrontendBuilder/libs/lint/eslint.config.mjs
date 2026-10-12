@@ -17,8 +17,10 @@ const buildProjectPatterns = (extension) =>
     Object.values(layout.projectModulesDirectories).map((directory) =>
         joinConfigurationPath(directory, `*/Presentation/Components/**/*.${extension}`),
     );
-const buildCorePattern = (extension) =>
-    joinConfigurationPath(layout.coreModulesDirectory, `*/src/Spryker/Zed/*/Presentation/Components/**/*.${extension}`);
+const buildCorePatterns = (extension) =>
+    Object.values(layout.coreModulesDirectories).map((directory) =>
+        joinConfigurationPath(directory, `*/src/*/Zed/*/Presentation/Components/**/*.${extension}`),
+    );
 
 // Mirrors where the reconciliation writes a configuration: the project root when the project keeps
 // a file of that name there, the builder otherwise.
@@ -264,7 +266,7 @@ const CORE_TYPESCRIPT_PROGRAMS = [
 
 export const merchantPortalCoreConfig = merchantPortalProjectConfig.map((block) => {
     const isTemplateBlock = block.files.some((pattern) => pattern.endsWith('.html'));
-    const coreBlock = { ...block, files: [buildCorePattern(isTemplateBlock ? 'html' : 'ts')] };
+    const coreBlock = { ...block, files: buildCorePatterns(isTemplateBlock ? 'html' : 'ts') };
 
     if (!isTemplateBlock) {
         coreBlock.languageOptions = {
