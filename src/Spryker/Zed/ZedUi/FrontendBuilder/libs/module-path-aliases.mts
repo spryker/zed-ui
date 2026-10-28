@@ -7,6 +7,7 @@ import {
     merchantPortalSourceLayouts,
     type MerchantPortalBuilderSettings,
 } from '../settings.mts';
+import { isSharedThemeAliasOfSourceRoots } from './shared-theme-aliases.mts';
 import {
     buildEntryPointName,
     expandModuleRootDirectories,
@@ -102,14 +103,17 @@ const isGeneratedModulePathAlias = (aliasName: string, aliasValue: unknown): boo
 export const mergeModulePathAliases = (
     existingAliases: ModulePathAliases,
     generatedAliases: ModulePathAliases,
+    sharedThemeSourceRoots: string[] = [],
 ): ModulePathAliases => {
     // An alias the generator emits is owned by the generator, whatever value the file holds for it,
     // so a hand-edited value is corrected rather than preserved. An alias it no longer emits is
-    // dropped when it still has a generated shape - its core module is gone - and kept otherwise.
+    // dropped when it still has a generated shape - its module or its Shared theme is gone - and kept otherwise.
     const handWrittenAliases = Object.fromEntries(
         Object.entries(existingAliases).filter(
             ([aliasName, aliasValue]) =>
-                !(aliasName in generatedAliases) && !isGeneratedModulePathAlias(aliasName, aliasValue),
+                !(aliasName in generatedAliases) &&
+                !isGeneratedModulePathAlias(aliasName, aliasValue) &&
+                !isSharedThemeAliasOfSourceRoots(aliasName, aliasValue, sharedThemeSourceRoots),
         ),
     );
 

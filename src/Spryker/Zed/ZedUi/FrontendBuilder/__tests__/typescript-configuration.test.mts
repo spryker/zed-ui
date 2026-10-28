@@ -130,6 +130,7 @@ describe('writing the Merchant Portal TypeScript configurations from scratch', (
             '../../../../../../../../vendor/spryker/*/src/*/Zed/*/Presentation/Components/entry.ts',
             '../../../../../../../../src/Pyz/Zed/*/Presentation/Components/entry.ts',
             '../../../../../../../../src/Acme/Zed/*/Presentation/Components/entry.ts',
+            '../../../../../../../../vendor/spryker/zed-ui/src/Spryker/Zed/ZedUi/FrontendBuilder/types/*.d.ts',
         ]);
     });
 
@@ -271,6 +272,7 @@ describe('reconciling configurations a project already has', () => {
             'src/Pyz/ZedUi/src/Pyz/Zed/ZedUi/Presentation/Components/environments/environment.prod.ts',
             'src/Spryker/*/src/*/Zed/*/Presentation/Components/entry.ts',
             'src/Pyz/*/src/Pyz/Zed/*/Presentation/Components/entry.ts',
+            'src/Spryker/ZedUi/src/Spryker/Zed/ZedUi/FrontendBuilder/types/*.d.ts',
             'src/Pyz/Custom/hand-written.ts',
         ]);
     });

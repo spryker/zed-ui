@@ -1,6 +1,7 @@
 import { dirname, join, resolve } from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
+import type { SourceRoots } from './libs/shared-theme-aliases.mts';
 
 export const SINGLE_ENTRY_POINT_NAME = 'spy/merchant-portal';
 export const SINGLE_ENTRY_POINT_MARKER = `${SINGLE_ENTRY_POINT_NAME}:single-entry-marker`;
@@ -176,6 +177,13 @@ const projectSourceLayout: MerchantPortalSourceLayout = {
 };
 
 export const merchantPortalSourceLayouts: MerchantPortalSourceLayout[] = [monorepoSourceLayout, projectSourceLayout];
+
+// The layout lists every directory weakest first, a later one wins; the alias targets want the strongest first.
+export const getSourceRoots = (settings: MerchantPortalBuilderSettings): SourceRoots => ({
+    context: settings.context,
+    core: Object.values(settings.layout.coreModulesDirectories),
+    project: Object.values(settings.layout.projectModulesDirectories).reverse(),
+});
 
 export const resolveSourceLayout = (context: string = process.cwd()): MerchantPortalSourceLayout => {
     if (existsSync(join(context, monorepoSourceLayout.marker))) {

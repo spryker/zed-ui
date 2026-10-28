@@ -1,8 +1,10 @@
 import type { CustomWebpackBrowserSchema, TargetOptions } from '@angular-builders/custom-webpack';
 import type { Configuration } from 'webpack';
-import { loadProjectBuilderSettings } from './settings.mts';
+import { getSourceRoots, loadProjectBuilderSettings } from './settings.mts';
 import { discoverEntryPoints } from './libs/entry-points.mts';
 import { applyDevelopmentWatchReload } from './libs/reload/development-watch.mts';
+import { buildSharedThemePathAliases } from './libs/shared-theme-aliases.mts';
+import { applySharedThemeSupport } from './libs/shared-theme-webpack.mts';
 
 export default async (
     config: Configuration,
@@ -30,6 +32,8 @@ export default async (
             '~@angular': settings.paths.angularPackagesDirectory,
         },
     };
+
+    applySharedThemeSupport(config, settings.context, await buildSharedThemePathAliases(getSourceRoots(settings)));
 
     config.output = {
         ...config.output,

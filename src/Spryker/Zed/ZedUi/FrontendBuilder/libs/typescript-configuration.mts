@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import {
     BUILDER_MODULE_RELATIVE_DIRECTORY,
     TEST_SETUP_MODULE_RELATIVE_PATH,
+    getSourceRoots,
     merchantPortalSourceLayouts,
     type MerchantPortalBuilderSettings,
     type MerchantPortalSourceLayout,
@@ -14,6 +15,11 @@ import {
     sortPathAliases,
     type ModulePathAliases,
 } from './module-path-aliases.mts';
+import {
+    buildSharedThemePathAliases,
+    buildSharedThemeSourcePattern,
+    toSharedThemeSourcePattern,
+} from './shared-theme-aliases.mts';
 import {
     matchesAnyPathTemplate,
     readConfigurationFile,
@@ -57,6 +63,9 @@ const SHARED_EXCLUDED_PATHS = ['**/node_modules/**', '**/*.spec.ts', '**/*.test.
 const MERCHANT_PORTAL_COMPILER_OPTIONS: Record<string, unknown> = {
     target: 'ES2022',
 };
+
+// Builder-relative: declarations the builder's own loaders make true, such as stylesheet imports.
+const AMBIENT_TYPES_PATTERN = 'types/*.d.ts';
 
 const PROJECT_APPLICATION_FILE_NAMES = ['main.ts', 'polyfills.ts', 'environments/environment.prod.ts'];
 
@@ -227,12 +236,27 @@ const buildLaddersOfLocation = (location: ConfigurationLocation, builderDirector
     return [...new Set([buildParentDirectoryLadder(builderDirectory), ...layoutLadders])];
 };
 
+const buildLayoutSourceRoots = (layout: MerchantPortalSourceLayout): string[] => [
+    ...Object.values(layout.coreModulesDirectories),
+    ...Object.values(layout.projectModulesDirectories),
+];
+
+// The roots of every layout, so the Shared theme entries a run under the other layout wrote are recognised too.
+const buildKnownSourceRoots = (effectiveLayout: MerchantPortalSourceLayout): string[] => [
+    ...new Set([...merchantPortalSourceLayouts, effectiveLayout].flatMap(buildLayoutSourceRoots)),
+];
+
 const buildConfigurationPlans = async (settings: MerchantPortalBuilderSettings): Promise<ConfigurationPlan[]> => {
     const { layout, globs } = settings;
+    const sharedThemeAliases = await buildSharedThemePathAliases(getSourceRoots(settings));
     const testSetupPath = await resolveCoreModuleFilePath(
         settings.paths.coreModulesDirectory,
         layout.coreModulesDirectory,
         TEST_SETUP_MODULE_RELATIVE_PATH,
+    );
+    const ambientTypesPattern = joinConfigurationPath(
+        directoryOfConfigurationPath(testSetupPath),
+        AMBIENT_TYPES_PATTERN,
     );
 
     return [
@@ -244,16 +268,30 @@ const buildConfigurationPlans = async (settings: MerchantPortalBuilderSettings):
                 // The application files of the other layout have to be recognised as well, otherwise
                 // switching layouts would leave them behind next to the current layout's ones.
                 ...[...merchantPortalSourceLayouts, layout].flatMap(buildProjectApplicationFiles),
+                ...buildKnownSourceRoots(layout).map(buildSharedThemeSourcePattern),
+                ...[...merchantPortalSourceLayouts, layout].map((sourceLayout) =>
+                    joinConfigurationPath(
+                        sourceLayout.coreModulesDirectory,
+                        '*',
+                        BUILDER_MODULE_RELATIVE_DIRECTORY,
+                        AMBIENT_TYPES_PATTERN,
+                    ),
+                ),
             ],
             sections: {
                 paths: sortPathAliases({
                     ...(await buildGeneratedModulePathAliases(settings)),
                     ...(await buildPolyfillsPathAlias(settings)),
+                    ...sharedThemeAliases,
                 }),
+                // The Angular compiler rejects an imported file outside the program, so every Shared theme an
+                // `@shared` alias points at is listed.
                 include: [
                     ...buildProjectApplicationFiles(layout),
                     ...buildCorePaths(layout, globs.coreEntryPointFile),
                     ...buildProjectPaths(layout, globs.projectEntryPointFile),
+                    ...new Set(Object.values(sharedThemeAliases).flat().map(toSharedThemeSourcePattern)),
+                    ambientTypesPattern,
                 ],
             },
         },
@@ -406,7 +444,11 @@ export const reconcileTypeScriptConfigurations = async (
             );
 
             compilerOptions.paths = sortPathAliases(
-                mergeModulePathAliases(compilerOptions.paths ?? {}, generatedAliases),
+                mergeModulePathAliases(
+                    compilerOptions.paths ?? {},
+                    generatedAliases,
+                    buildKnownSourceRoots(settings.layout),
+                ),
             );
             configuration.compilerOptions = compilerOptions;
         }
