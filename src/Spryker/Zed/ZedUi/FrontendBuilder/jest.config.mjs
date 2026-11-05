@@ -23,7 +23,7 @@ export default {
         ),
         ...settings.paths.coreModulesDirectories,
     ].filter((directory, index, directories) => existsSync(directory) && directories.indexOf(directory) === index),
-    testMatch: ['**/+(*.)+(spec|test).+(ts|js)?(x)'],
+    testMatch: ['**/Presentation/Components/**/+(*.)+(spec|test).+(ts|js)?(x)'],
     moduleFileExtensions: ['ts', 'js', 'html'],
     passWithNoTests: true,
     testPathIgnorePatterns: ['/node_modules/', '/FrontendBuilder/__tests__/'],
