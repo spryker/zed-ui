@@ -1,4 +1,4 @@
-import glob from 'fast-glob';
+import { glob } from './glob.mts';
 
 const dasherize = (value: string): string =>
     value
@@ -16,7 +16,6 @@ export const expandModuleRootDirectories = async (absoluteDirectoryPattern: stri
         onlyDirectories: true,
         onlyFiles: false,
         absolute: true,
-        unique: true,
         followSymbolicLinks: false,
     });
 

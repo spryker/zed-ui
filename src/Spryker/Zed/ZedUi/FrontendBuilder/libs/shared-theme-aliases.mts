@@ -1,6 +1,6 @@
 // Adapted from the Gui and ShopUi FrontendBuilders' shared-theme-aliases.mts until the builders share a package.
 import { join } from 'node:path';
-import glob from 'fast-glob';
+import { glob } from './glob.mts';
 import { joinConfigurationPath, toConfigurationPathSegments } from './utils.mts';
 
 /** Project-root-relative source roots, classified by the builder settings. */
@@ -57,7 +57,6 @@ const findSharedThemeDirectories = async (context: string, sourceRoot: string): 
             cwd: context,
             onlyDirectories: true,
             onlyFiles: false,
-            unique: true,
             followSymbolicLinks: false,
         })
     ).sort();
