@@ -10,12 +10,7 @@ namespace Spryker\Zed\ZedUi\Dependency\Facade;
 interface ZedUiToTranslatorFacadeInterface
 {
     /**
-     * @param string $id
      * @param array<string, mixed> $parameters
-     * @param string|null $domain
-     * @param string|null $locale
-     *
-     * @return string
      */
     public function trans(string $id, array $parameters = [], ?string $domain = null, ?string $locale = null): string;
 }

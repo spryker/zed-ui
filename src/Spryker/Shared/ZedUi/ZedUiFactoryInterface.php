@@ -16,8 +16,6 @@ interface ZedUiFactoryInterface
      * - Creates form response builder.
      *
      * @api
-     *
-     * @return \Spryker\Shared\ZedUi\Configuration\ZedUiFormResponseBuilderInterface
      */
     public function createZedUiFormResponseBuilder(): ZedUiFormResponseBuilderInterface;
 }

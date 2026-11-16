@@ -42,11 +42,13 @@ export default async (
 
     // webpack 5.111 checks every imported name, including interfaces the emitted code still names;
     // TypeScript already rejects an import of an export that does not exist.
+    // Angular turns the worker parsing off; it is turned on so that a component's `new Worker(new URL(...))`,
+    // such as the Argon2id worker of the ALTCHA widget, is emitted as a chunk of its own.
     config.module = {
         ...config.module,
         parser: {
             ...config.module?.parser,
-            javascript: { ...config.module?.parser?.javascript, importExportsPresence: false },
+            javascript: { ...config.module?.parser?.javascript, importExportsPresence: false, worker: ['...'] },
         },
     };
 

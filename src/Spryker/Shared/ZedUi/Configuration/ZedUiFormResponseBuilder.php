@@ -390,11 +390,7 @@ class ZedUiFormResponseBuilder implements ZedUiFormResponseBuilderInterface
     }
 
     /**
-     * @param string $actionType
-     * @param string|null $url
      * @param array<array<string, mixed>> $notifications
-     *
-     * @return \Generated\Shared\Transfer\ZedUiFormResponseActionTransfer
      */
     protected function createResponseAction(
         string $actionType,
@@ -414,11 +410,6 @@ class ZedUiFormResponseBuilder implements ZedUiFormResponseBuilderInterface
     }
 
     /**
-     * @param string $title
-     * @param string $type
-     * @param bool $closeable
-     * @param string|null $description
-     *
      * @return $this
      */
     protected function addActionNotification(

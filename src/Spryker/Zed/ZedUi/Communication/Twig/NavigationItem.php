@@ -11,24 +11,12 @@ use JsonSerializable;
 
 class NavigationItem implements JsonSerializable
 {
-    /**
-     * @var string|null
-     */
     protected ?string $title;
 
-    /**
-     * @var string|null
-     */
     protected ?string $url;
 
-    /**
-     * @var string|null
-     */
     protected ?string $icon;
 
-    /**
-     * @var bool|null
-     */
     protected ?bool $isActive;
 
     /**
@@ -86,8 +74,6 @@ class NavigationItem implements JsonSerializable
 
     /**
      * @param array<array<string, mixed>>|null $subItems
-     *
-     * @return void
      */
     public function setSubItems(?array $subItems): void
     {

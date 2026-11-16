@@ -23,14 +23,8 @@ class NavigationComponentConfigFunctionProvider extends TwigFunctionProvider
      */
     protected const DEFAULT_ITEM_ICON = 'fa-angle-double-right';
 
-    /**
-     * @var \Spryker\Zed\ZedUi\Dependency\Service\ZedUiToUtilEncodingServiceInterface
-     */
     protected ZedUiToUtilEncodingServiceInterface $utilEncodingService;
 
-    /**
-     * @var \Spryker\Zed\ZedUi\Dependency\Facade\ZedUiToTranslatorFacadeInterface
-     */
     protected ZedUiToTranslatorFacadeInterface $translatorFacade;
 
     public function __construct(
@@ -73,8 +67,6 @@ class NavigationComponentConfigFunctionProvider extends TwigFunctionProvider
 
     /**
      * @param array<string, mixed> $item
-     *
-     * @return \Spryker\Zed\ZedUi\Communication\Twig\NavigationItem
      */
     protected function createNavigationItem(array $item): NavigationItem
     {
@@ -91,8 +83,6 @@ class NavigationComponentConfigFunctionProvider extends TwigFunctionProvider
 
     /**
      * @param array<string, mixed> $navigationItem
-     *
-     * @return string
      */
     protected function getNavigationItemIcon(array $navigationItem): string
     {
@@ -111,8 +101,6 @@ class NavigationComponentConfigFunctionProvider extends TwigFunctionProvider
 
     /**
      * @param array<string, mixed> $navigationItem
-     *
-     * @return bool
      */
     protected function isNavigationItemActive(array $navigationItem): bool
     {

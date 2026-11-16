@@ -17,8 +17,6 @@ interface ZedUiFormResponseBuilderInterface
      * - Creates `ZedUiFormResponseTransfer` according to all action settings.
      *
      * @api
-     *
-     * @return \Generated\Shared\Transfer\ZedUiFormResponseTransfer
      */
     public function createResponse(): ZedUiFormResponseTransfer;
 
@@ -27,10 +25,6 @@ interface ZedUiFormResponseBuilderInterface
      * - Adds message with type `info` to notification action stack.
      *
      * @api
-     *
-     * @param string $title
-     * @param bool $closeable
-     * @param string|null $description
      *
      * @return $this
      */
@@ -46,10 +40,6 @@ interface ZedUiFormResponseBuilderInterface
      *
      * @api
      *
-     * @param string $title
-     * @param bool $closeable
-     * @param string|null $description
-     *
      * @return $this
      */
     public function addSuccessNotification(
@@ -63,10 +53,6 @@ interface ZedUiFormResponseBuilderInterface
      * - Adds message with type `warning` to notification action stack.
      *
      * @api
-     *
-     * @param string $title
-     * @param bool $closeable
-     * @param string|null $description
      *
      * @return $this
      */
@@ -82,10 +68,6 @@ interface ZedUiFormResponseBuilderInterface
      *
      * @api
      *
-     * @param string $title
-     * @param bool $closeable
-     * @param string|null $description
-     *
      * @return $this
      */
     public function addErrorNotification(
@@ -99,8 +81,6 @@ interface ZedUiFormResponseBuilderInterface
      * - Adds redirect action.
      *
      * @api
-     *
-     * @param string $url
      *
      * @return $this
      */
@@ -122,8 +102,6 @@ interface ZedUiFormResponseBuilderInterface
      *
      * @api
      *
-     * @param \Generated\Shared\Transfer\ZedUiFormRequestActionTransfer $zedUiFormRequestActionTransfer
-     *
      * @return $this
      */
     public function addActionRefreshModal(ZedUiFormRequestActionTransfer $zedUiFormRequestActionTransfer);
@@ -133,8 +111,6 @@ interface ZedUiFormResponseBuilderInterface
      * - Adds open modal action.
      *
      * @api
-     *
-     * @param \Generated\Shared\Transfer\ZedUiFormRequestActionTransfer $zedUiFormRequestActionTransfer
      *
      * @return $this
      */
@@ -146,8 +122,6 @@ interface ZedUiFormResponseBuilderInterface
      *
      * @api
      *
-     * @param \Generated\Shared\Transfer\ZedUiFormRequestActionTransfer $zedUiFormRequestActionTransfer
-     *
      * @return $this
      */
     public function addActionCloseModal(ZedUiFormRequestActionTransfer $zedUiFormRequestActionTransfer);
@@ -157,8 +131,6 @@ interface ZedUiFormResponseBuilderInterface
      * - Adds submit form action.
      *
      * @api
-     *
-     * @param \Generated\Shared\Transfer\ZedUiFormRequestActionTransfer $zedUiFormRequestActionTransfer
      *
      * @return $this
      */
@@ -170,8 +142,6 @@ interface ZedUiFormResponseBuilderInterface
      *
      * @api
      *
-     * @param \Generated\Shared\Transfer\ZedUiFormRequestActionTransfer $zedUiFormRequestActionTransfer
-     *
      * @return $this
      */
     public function addActionSubmitAjaxForm(ZedUiFormRequestActionTransfer $zedUiFormRequestActionTransfer);
@@ -181,8 +151,6 @@ interface ZedUiFormResponseBuilderInterface
      * - Adds refresh table action.
      *
      * @api
-     *
-     * @param string|null $tableId
      *
      * @return $this
      */

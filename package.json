@@ -3,9 +3,9 @@
     "version": "0.0.1",
     "private": true,
     "scripts": {
-        "build": "cd \"$INIT_CWD\" && ng build",
-        "build:watch": "cd \"$INIT_CWD\" && ng build --watch",
-        "build:production": "cd \"$INIT_CWD\" && ng build --configuration production",
+        "build": "npm run update:config && cd \"$INIT_CWD\" && ng build",
+        "build:watch": "npm run update:config && cd \"$INIT_CWD\" && ng build --watch",
+        "build:production": "npm run update:config && cd \"$INIT_CWD\" && ng build --configuration production",
         "test": "cd \"$INIT_CWD\" && ng test",
         "lint": "node ./src/Spryker/Zed/ZedUi/FrontendBuilder/libs/lint/eslint.mts",
         "stylelint": "node ./src/Spryker/Zed/ZedUi/FrontendBuilder/libs/lint/stylelint.mts",
